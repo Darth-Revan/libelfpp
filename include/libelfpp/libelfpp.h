@@ -36,8 +36,10 @@
 #ifndef LIBELFPP_LIBELFPP_H
 #define LIBELFPP_LIBELFPP_H
 
+#include "endianutil.h"
 #include <string>
 #include <ostream>
+#include <memory>
 
 
 namespace libelfpp {
@@ -63,6 +65,9 @@ private:
   /// \p true if file is 64 bit file
   bool Is64Bit;
 
+  /// Holds a shared pointer to a endianess converter
+  std::shared_ptr<EndianessConverter> Converter;
+
 public:
   /// Constructor of \p ELFFile. Creates a new instance of the class or throws
   /// an \p runtime_exception if something goes wrong.
@@ -76,10 +81,13 @@ public:
   /// \param other The instance to copy
   ELFFile(const ELFFile& other) : Filename(other.Filename),
                                   IsLittleEndian(other.IsLittleEndian),
-                                  Is64Bit(other.Is64Bit) {}
+                                  Is64Bit(other.Is64Bit),
+                                  Converter(other.Converter) {}
 
   /// Destructor of \p ELFFile.
-  ~ELFFile() {}
+  ~ELFFile() {
+    Converter.reset();
+  }
 
   /// Returns the name of the underlying file a string.
   ///

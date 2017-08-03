@@ -79,6 +79,8 @@ ELFFile::ELFFile(const std::string& filename) : Filename(filename) {
     throw std::runtime_error("Invalid ELF encoding!");
   }
 
+  Converter = std::make_shared<EndianessConverter>(IsLittleEndian);
+
   Input.close();
 }
 

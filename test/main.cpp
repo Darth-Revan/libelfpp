@@ -28,6 +28,23 @@
 
 using namespace libelfpp;
 
+TEST_CASE("EndianessConverter", "[libelfpp]") {
+  EndianessConverter Converter(true, true);
+  REQUIRE(Converter(0xDEADBEEF) == 0xDEADBEEF);
+  REQUIRE(Converter(0x01) == 0x01);
+  EndianessConverter Converter2(false, false);
+  REQUIRE(Converter2(0xDEADBEEF) == 0xDEADBEEF);
+  REQUIRE(Converter2(0x01) == 0x01);
+  EndianessConverter Converter3(false, true);
+  REQUIRE(Converter3(0xDEADBEEF) == 0xEFBEADDE);
+  REQUIRE(Converter3((uint16_t) 0x01) == 0x0100);
+  REQUIRE(Converter3(0x00102442) == 0x42241000);
+  EndianessConverter Converter4(true, false);
+  REQUIRE(Converter4(0xDEADBEEF) == 0xEFBEADDE);
+  REQUIRE(Converter4((uint16_t) 0x01) == 0x0100);
+  REQUIRE(Converter4(0x00102442) == 0x42241000);
+}
+
 TEST_CASE("getVersionString", "[libelfpp]") {
   REQUIRE_FALSE(getVersionString().empty());
   REQUIRE(getVersionString().compare(ELFPP_VERSION) == 0);
