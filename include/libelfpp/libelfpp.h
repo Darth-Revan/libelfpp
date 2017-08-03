@@ -32,7 +32,120 @@
  * This header file is the main header file for \p libelfpp and is the public
  * interface for the library.
  */
+
 #ifndef LIBELFPP_LIBELFPP_H
 #define LIBELFPP_LIBELFPP_H
+
+#include <string>
+#include <ostream>
+
+
+namespace libelfpp {
+
+/// Returns the library's version number as string.
+///
+/// \return The library's version number
+inline const std::string getVersionString() {
+  return std::string(ELFPP_VERSION);
+}
+
+
+/// Class representing an ELF file;
+class ELFFile final {
+
+private:
+  /// Holds the name of the underlying file
+  const std::string Filename;
+
+  /// \p true if file is little endian
+  bool IsLittleEndian;
+
+  /// \p true if file is 64 bit file
+  bool Is64Bit;
+
+public:
+  /// Constructor of \p ELFFile. Creates a new instance of the class or throws
+  /// an \p runtime_exception if something goes wrong.
+  ///
+  /// \param filename Path to the file to create an instance upon
+  /// \throws std::runtime_exception If something goes wrong
+  ELFFile(const std::string& filename);
+
+  /// Copy constructor of \p ELFFile.
+  ///
+  /// \param other The instance to copy
+  ELFFile(const ELFFile& other) : Filename(other.Filename),
+                                  IsLittleEndian(other.IsLittleEndian),
+                                  Is64Bit(other.Is64Bit) {}
+
+  /// Destructor of \p ELFFile.
+  ~ELFFile() {}
+
+  /// Returns the name of the underlying file a string.
+  ///
+  /// \return Name of file
+  const std::string getName() const {
+    return Filename;
+  }
+
+  /// Returns \p true if the underlying file is a 64 Bit file, \p false
+  /// otherwise.
+  ///
+  /// \return \p true if file is 64 Bit, \p false otherwise
+  const bool is64Bit() const {
+    return Is64Bit;
+  }
+
+  /// Returns \p true if the underlying file is a little endian encoded, \p false
+  /// otherwise.
+  ///
+  /// \return \p true if file is little endian encoded, \p false otherwise
+  const bool isLittleEndian() const {
+    return IsLittleEndian;
+  }
+
+  /// Overrides the stream operator << for \p ELFFile.
+  ///
+  /// \param stream The output stream to write \p ELFFile to
+  /// \param file Instance of \p ELFFile
+  /// \return The output stream \p stream
+  friend std::ostream& operator<<(std::ostream& stream, const ELFFile& file);
+
+  /// Overrides the comparison operator ==. Returns \p true if \p lhs and \p rhs
+  /// point to the same file, \p false otherwise.
+  ///
+  /// \param lhs The first object
+  /// \param rhs The second object
+  /// \return \p true if both are equal, \p false otherwise
+  friend bool operator==(const ELFFile& lhs, const ELFFile& rhs);
+
+  /// Overrides the comparison operator !=. Returns \p false if \p lhs and \p rhs
+  /// point to the same file, \p true otherwise.
+  ///
+  /// \param lhs The first object
+  /// \param rhs The second object
+  /// \return \p false if both are equal, \p true otherwise
+  friend bool operator!=(const ELFFile& lhs, const ELFFile& rhs);
+
+}; // end of class ELFFile
+
+
+// Overrides the stream operator <<
+std::ostream& operator<<(std::ostream &stream, const ELFFile &file) {
+  stream << "ELFFile (" << file.Filename << ")\n";
+  return stream;
+}
+
+// Operator ==
+bool operator==(const ELFFile &lhs, const ELFFile &rhs) {
+  return (lhs.Filename == rhs.Filename);
+}
+
+// Operator !=
+bool operator!=(const ELFFile &lhs, const ELFFile &rhs) {
+  return !operator==(lhs, rhs);
+}
+
+} // end of namespace libelfpp
 
 #endif //LIBELFPP_LIBELFPP_H

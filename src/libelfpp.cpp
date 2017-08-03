@@ -34,3 +34,52 @@
  */
 
 #include "libelfpp/libelfpp.h"
+#include <fstream>
+#include <cstring>
+#include <elf.h>
+
+namespace libelfpp {
+
+// Implementation of constructor
+ELFFile::ELFFile(const std::string& filename) : Filename(filename) {
+  std::ifstream Input(filename);
+  if (!Input.good()) {
+    throw std::runtime_error("File does not exist!");
+  }
+
+  unsigned char e_ident[EI_NIDENT];
+  Input.seekg(0);
+  Input.read(reinterpret_cast<char*>(&e_ident), sizeof(e_ident));
+
+  // check if file is ELF file
+  if (Input.gcount() != sizeof(e_ident) ||
+      std::memcmp(e_ident, ELFMAG, std::strlen(ELFMAG)) != 0) {
+    throw std::runtime_error("Invalid magic number!");
+  }
+
+  switch (e_ident[EI_CLASS]) {
+  case ELFCLASS32:
+    Is64Bit = false;
+    break;
+  case ELFCLASS64:
+    Is64Bit = true;
+    break;
+  default:
+    throw std::runtime_error("Invalid ELF file class!");
+  }
+
+  switch (e_ident[EI_DATA]) {
+  case ELFDATA2LSB:
+    IsLittleEndian = true;
+    break;
+  case ELFDATA2MSB:
+    IsLittleEndian = false;
+    break;
+  default:
+    throw std::runtime_error("Invalid ELF encoding!");
+  }
+
+  Input.close();
+}
+
+} // end of namespace libelfpp

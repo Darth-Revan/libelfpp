@@ -24,3 +24,36 @@
 
 #define CATCH_CONFIG_MAIN
 #include "catch.h"
+#include "libelfpp/libelfpp.h"
+
+using namespace libelfpp;
+
+TEST_CASE("getVersionString", "[libelfpp]") {
+  REQUIRE_FALSE(getVersionString().empty());
+  REQUIRE(getVersionString().compare(ELFPP_VERSION) == 0);
+}
+
+TEST_CASE("ELFFile", "[libelfpp]") {
+  REQUIRE_THROWS_AS(ELFFile("nonexistingfilename"), std::runtime_error);
+  ELFFile file("libelfpp.so");
+  REQUIRE(file.getName().compare("libelfpp.so") == 0);
+#ifdef LITTLE_ENDIAN
+  REQUIRE(file.isLittleEndian());
+#else
+  REQUIRE_FALSE(file.isLittleEndian());
+#endif
+#if UINTPTR_MAX == 0xffffffff
+  REQUIRE_FALSE(file.is64Bit());
+#elif UINTPTR_MAX == 0xffffffffffffffff
+  REQUIRE(file.is64Bit());
+#else
+#error What the heck!? Your CPU is neither 32 nor 64 Bit!
+#endif
+}
+
+ELFFile file("libelfpp.so");
+
+TEST_CASE("Compare operators", "[libelfpp]") {
+  ELFFile test("test_elfpp");
+  REQUIRE(test != file);
+}
