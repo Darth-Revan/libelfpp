@@ -37,7 +37,7 @@
 #define LIBELFPP_LIBELFPP_H
 
 #include "fileheader.h"
-#include <string>
+#include "segment.h"
 #include <ostream>
 #include <memory>
 
@@ -71,6 +71,16 @@ private:
   /// Holds a shared pointer to the file header
   std::shared_ptr<ELFFileHeader> FileHeader;
 
+  /// Holds pointers to all segments of the file
+  std::vector<std::shared_ptr<Segment>> Segments;
+
+  /// Loads all segmetns from the file stream \p stream and stores them in the
+  /// vector \p Segements.
+  ///
+  /// \param stream A file input stream to read from
+  /// \return Number of segments loaded
+  Elf64_Half loadSegmentsFromFile(std::ifstream& stream);
+
 public:
   /// Constructor of \p ELFFile. Creates a new instance of the class or throws
   /// an \p runtime_exception if something goes wrong.
@@ -86,12 +96,14 @@ public:
                                   IsLittleEndian(other.IsLittleEndian),
                                   Is64Bit(other.Is64Bit),
                                   Converter(other.Converter),
-                                  FileHeader(other.FileHeader) {}
+                                  FileHeader(other.FileHeader),
+                                  Segments(other.Segments) {}
 
   /// Destructor of \p ELFFile.
   ~ELFFile() {
     Converter.reset();
     FileHeader.reset();
+    Segments.clear();
   }
 
   /// Returns the name of the underlying file a string.
@@ -107,6 +119,14 @@ public:
   /// \return Pointer to the file header
   const std::shared_ptr<ELFFileHeader> getHeader() const {
     return FileHeader;
+  }
+
+  /// Returns a constant reference to the vector of segments in this
+  /// ELF file.
+  ///
+  /// @return Reference to a std::vector containing std::shared_ptr<Segment>
+  const std::vector<std::shared_ptr<Segment>>& segments() const {
+    return Segments;
   }
 
   /// Overrides the stream operator << for \p ELFFile.

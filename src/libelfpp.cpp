@@ -85,7 +85,53 @@ ELFFile::ELFFile(const std::string& filename) : Filename(filename) {
   } else {
     FileHeader = std::make_shared<ELFHeaderImpl<Elf32_Ehdr>>(Converter, IsLittleEndian, Input);
   }
+
+  loadSegmentsFromFile(Input);
   Input.close();
+}
+
+// Loads all segmetns from the file stream
+Elf64_Half ELFFile::loadSegmentsFromFile(std::ifstream& stream) {
+  Elf64_Half entrySize = FileHeader->getProgramHeaderSize();
+  Elf64_Half segmentNumber = FileHeader->getProgramHeaderNumber();
+  Elf64_Off offset = FileHeader->getProgramHeaderOffset();
+
+  for (Elf64_Half iter = 0; iter < segmentNumber; ++iter) {
+    std::shared_ptr<Segment> Seg;
+    Elf64_Off baseOff, endOff, vBaseAddr, vEndAddr;
+
+    if (Is64Bit) {
+      Seg = std::make_shared<SegmentImpl<Elf64_Phdr>>(Converter);
+    } else {
+      Seg = std::make_shared<SegmentImpl<Elf32_Phdr>>(Converter);
+    }
+    Seg->loadSegment(stream, (std::streamoff) offset + iter * entrySize);
+    Seg->setIndex(iter);
+    Segments.push_back(Seg);
+
+    // add associated sections
+    baseOff = Seg->getOffset();
+    endOff = baseOff + Seg->getFileSize();
+    vBaseAddr = Seg->getVirtualAddress();
+    vEndAddr = vBaseAddr + Seg->getMemorySize();
+
+    /*
+    for (const auto& Section : Sections) {
+      if (Section->getFlags() & SHF_ALLOC) {
+        if (vBaseAddr <= Section->getAddress() &&
+            Section->getAddress() + Section->getSize() <= vEndAddr) {
+          Seg->addSectionIndex(Section->getIndex());
+        }
+      } else {
+        if (baseOff <= Section->getOffset() &&
+            Section->getOffset() + Section->getSize() <= endOff) {
+          Seg->addSectionIndex(Section->getIndex());
+        }
+      }
+    }*/
+  }
+
+  return segmentNumber;
 }
 
 } // end of namespace libelfpp

@@ -38,7 +38,9 @@
 #define LIBELFPP_PRIVATE_IMPL_H
 
 #include "libelfpp/fileheader.h"
+#include "libelfpp/segment.h"
 #include <map>
+#include <algorithm>
 
 namespace libelfpp {
 
@@ -47,6 +49,9 @@ extern std::map<unsigned int, const char*> ELFMachineStrings;
 
 /// Map mapping ABI codes to strings
 extern std::map<unsigned int, const char*> ABIStrings;
+
+/// Holds strings representing segment types
+extern std::map<unsigned int, const char*> SegmentTypeStrings;
 
 /// Template class for the two types of \p Elf_Ehdr
 ///
@@ -237,7 +242,166 @@ public:
   Elf64_Half getSectionHeaderStringTableIndex() const {
     return (*Converter) (Header.e_shstrndx);
   }
-};
+}; // end of class ELFHeaderImpl
+
+
+/// Templated implementation of \p Segment
+///
+/// \tparam T The ELF type
+template<class T>
+class SegmentImpl : public Segment {
+
+private:
+  /// The header of this segment
+  T Header;
+  /// The index of this segment
+  Elf64_Half Index;
+  /// The data associated with this segment
+  char* Data;
+  /// Pointer to an instance of \p EndianessConverter
+  const std::shared_ptr<EndianessConverter> Converter;
+  /// Holds the indices of associated sections
+  std::vector<Elf64_Half> SectionIndices;
+
+public:
+  /// Constructor of \p SegmentImpl.
+  ///
+  /// \param converter Pointer to an instance of \p EndianessConverter
+  SegmentImpl(const std::shared_ptr<EndianessConverter> converter) :
+      Converter(converter), SectionIndices(), Data(nullptr) {
+    std::fill_n(reinterpret_cast<char*>(&Header), sizeof(Header), '\0');
+  }
+
+  /// Destructor of \p SectionImpl.
+  ~SegmentImpl() {
+    delete[] Data;
+    SectionIndices.clear();
+  }
+
+  // Returns index of segment
+  Elf64_Half getIndex() const {
+    return Index;
+  }
+
+  // Returns type of segment
+  inline Elf64_Word getType() const {
+    return (*Converter) (Header.p_type);
+  }
+
+  // Returns type of segment as string
+  const std::string getTypeString() const {
+    try {
+      return std::string(SegmentTypeStrings.at(static_cast<unsigned int>(getType())));
+    } catch (const std::out_of_range&) {
+      return "UNKOWN";
+    }
+  }
+
+  // Return flags of segment
+  Elf64_Word getFlags() const {
+    return (*Converter) (Header.p_flags);
+  }
+
+  // Return a string representing the flags of segment
+  const std::string getFlagsString() const {
+    std::string result = "";
+    auto flags = getFlags();
+    result += (flags & PF_R ? "R" : "");
+    result += (flags & PF_W ? "W" : "");
+    result += (flags & PF_X ? "X" : "");
+    return result;
+  }
+
+  // Returns address alignment of the segment
+  Elf64_Xword getAddressAlignment() const {
+    return (*Converter) (Header.p_align);
+  }
+
+  // Returns virtual address of segment
+  Elf64_Addr getVirtualAddress() const {
+    return (*Converter) (Header.p_vaddr);
+  }
+
+  // Returns physical address of segment
+  Elf64_Addr getPhysicalAddress() const {
+    return (*Converter) (Header.p_paddr);
+  }
+
+  // Returns filesz member
+  Elf64_Xword getFileSize() const {
+    return (*Converter) (Header.p_filesz);
+  }
+
+  // Returns memsz member
+  Elf64_Xword getMemorySize() const {
+    return (*Converter) (Header.p_memsz);
+  }
+
+  // Returns offset of segment
+  Elf64_Off getOffset() const {
+    return (*Converter) (Header.p_offset);
+  }
+
+  // Returns segment data
+  const char* getData() const {
+    return Data;
+  }
+
+  // Returns segment data as string
+  const std::string getDataString() const {
+    std::string Ret {};
+    Ret.assign(Data, getFileSize());
+    return Ret;
+  }
+
+  // Return section number of segment
+  Elf64_Half getSectionNumber() const {
+    return static_cast<Elf64_Half>(SectionIndices.size());
+  }
+
+  // Return vector containing indices of associated sections
+  const std::vector<Elf64_Half>& getAssociatedSections() const {
+    return SectionIndices;
+  }
+
+protected:
+  // loads the segment from file
+  void loadSegment(std::ifstream& stream, const std::streampos offset) {
+    stream.seekg(offset);
+    stream.read(reinterpret_cast<char*>(&Header), sizeof(Header));
+
+    Elf64_Xword Size = getFileSize();
+    if (getType() != PT_NULL && Size != 0) {
+      try {
+        Data = new char[Size];
+      } catch (std::bad_alloc&) {
+        Data = nullptr;
+        Size = 0;
+      }
+      if (Data != 0) {
+        stream.seekg((*Converter) (Header.p_offset));
+        stream.read(Data, Size);
+      }
+    }
+  }
+
+  // sets the index of this segment
+  void setIndex(const Elf64_Half index) {
+    Index = index;
+  }
+
+  // add index to indices of associated sections
+  Elf64_Half addSectionIndex(const Elf64_Half index) {
+    // The vector will be so small, that the overhead of an unordered_set would
+    // be higher than searching the vector for every insert
+    if (std::find(SectionIndices.begin(), SectionIndices.end(), index) ==
+        SectionIndices.end()) {
+      SectionIndices.push_back(index);
+    }
+    return static_cast<Elf64_Half >(SectionIndices.size());
+  }
+
+}; // end of class SegmentImpl
 
 } // end of namespace libelfpp
 

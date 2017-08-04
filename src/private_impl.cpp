@@ -237,4 +237,24 @@ std::map<unsigned int, const char*> ABIStrings = {
     {ELFOSABI_STANDALONE, "Standalone (Embedded) application"}
 };
 
+std::map<unsigned int, const char*> SegmentTypeStrings {
+    {PT_NULL, "NULL"},
+    {PT_LOAD, "LOAD"},
+    {PT_DYNAMIC, "DYNAMIC"},
+    {PT_INTERP, "INTERPRET"},
+    {PT_NOTE, "NOTE"},
+    {PT_SHLIB, "SHLIB"},
+    {PT_PHDR, "PHDR"},
+    {PT_TLS, "TLS"},
+    {PT_GNU_EH_FRAME, "GNU_EH_FRAME"},
+    {PT_SUNWBSS, "SUNW_UNWBSS"},
+    {PT_SUNWSTACK, "SUNWSTACK"},
+    {PT_GNU_STACK, "GNU_STACK"},
+    {PT_GNU_RELRO, "GNU_RELRO"},
+    {PT_MIPS_REGINFO, "MIPS_REGINFO"},
+    {PT_MIPS_RTPROC, "MIPS_RTPROC"},
+    {PT_MIPS_OPTIONS, "MIPS_OPTIONS"},
+    {PT_MIPS_ABIFLAGS, "MIPS_ABIFLAGS"},
+};
+
 }

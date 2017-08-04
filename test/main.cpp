@@ -84,3 +84,16 @@ TEST_CASE("Header access", "[libelfpp]") {
 #error What the heck!? Your CPU is neither 32 nor 64 Bit!
 #endif
 }
+
+TEST_CASE("Segment access", "[libelfpp]") {
+  REQUIRE(file.segments().size() > 0);
+  REQUIRE(file.segments().size() == file.getHeader()->getProgramHeaderNumber());
+  REQUIRE_THROWS_AS(file.segments().at(-1000), std::out_of_range);
+  auto Seg = file.segments().at(2);
+  REQUIRE(Seg);
+  REQUIRE(Seg->getFileSize() > 0);
+  REQUIRE(Seg->getMemorySize() > 0);
+  REQUIRE(Seg->getData());
+  REQUIRE_FALSE(Seg->getDataString().empty());
+  REQUIRE(Seg->getDataString().size() == Seg->getFileSize());
+}
