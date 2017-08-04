@@ -149,11 +149,11 @@ public:
 
   // Returns the ELF file's ABI as string.
   const std::string getABIString() const {
-    auto abi = getABI();
-    if (abi < ABIStrings.size()) {
-      return ABIStrings[abi];
+    try {
+      return std::string(ABIStrings.at(getABI()));
+    } catch (const std::out_of_range&) {
+      return "Unknown";
     }
-    return "Unknown";
   }
 
   // Returns the ELF file's type.
@@ -186,11 +186,11 @@ public:
 
   // Returns the ELF file's machine architecture as string.
   const std::string getMachineString() const {
-    auto idx = getMachine();
-    if (idx < ELFMachineStrings.size()) {
-      return ELFMachineStrings[idx];
+    try {
+      return std::string(ELFMachineStrings.at(getMachine()));
+    } catch (const std::out_of_range &) {
+      return "Unknown";
     }
-    return "Unkown";
   }
 
   // Returns the ELF file's entry point.
