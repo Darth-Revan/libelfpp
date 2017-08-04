@@ -34,9 +34,8 @@
  */
 
 #include "libelfpp/libelfpp.h"
-#include <fstream>
+#include "private_impl.h"
 #include <cstring>
-#include <elf.h>
 
 namespace libelfpp {
 
@@ -81,6 +80,11 @@ ELFFile::ELFFile(const std::string& filename) : Filename(filename) {
 
   Converter = std::make_shared<EndianessConverter>(IsLittleEndian);
 
+  if (Is64Bit) {
+    FileHeader = std::make_shared<ELFHeaderImpl<Elf64_Ehdr>>(Converter, IsLittleEndian, Input);
+  } else {
+    FileHeader = std::make_shared<ELFHeaderImpl<Elf32_Ehdr>>(Converter, IsLittleEndian, Input);
+  }
   Input.close();
 }
 

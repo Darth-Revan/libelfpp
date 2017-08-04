@@ -74,3 +74,13 @@ TEST_CASE("Compare operators", "[libelfpp]") {
   ELFFile test("test_elfpp");
   REQUIRE(test != file);
 }
+
+TEST_CASE("Header access", "[libelfpp]") {
+  auto header = file.getHeader();
+  REQUIRE(file.getHeader());
+  REQUIRE(header->getProgramHeaderNumber());
+  REQUIRE(header->getEntryPoint());
+  REQUIRE_FALSE(header->getELFTypeString().empty());
+  REQUIRE_FALSE(header->getMachineString().empty());
+  REQUIRE_FALSE(header->getABIString().empty());
+}

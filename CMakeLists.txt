@@ -52,7 +52,7 @@ if (NOT HAVE_ELFH)
 endif()
 
 include_directories(include)
-set(SOURCES include/libelfpp/ src/libelfpp.cpp)
+set(SOURCES include/libelfpp/ src/libelfpp.cpp src/private_impl.h src/private_impl.cpp)
 add_library(elfpp SHARED ${SOURCES})
 
 target_include_directories(elfpp PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include> PRIVATE src)

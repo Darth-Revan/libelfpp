@@ -36,7 +36,7 @@
 #ifndef LIBELFPP_LIBELFPP_H
 #define LIBELFPP_LIBELFPP_H
 
-#include "endianutil.h"
+#include "fileheader.h"
 #include <string>
 #include <ostream>
 #include <memory>
@@ -68,6 +68,9 @@ private:
   /// Holds a shared pointer to a endianess converter
   std::shared_ptr<EndianessConverter> Converter;
 
+  /// Holds a shared pointer to the file header
+  std::shared_ptr<ELFFileHeader> FileHeader;
+
 public:
   /// Constructor of \p ELFFile. Creates a new instance of the class or throws
   /// an \p runtime_exception if something goes wrong.
@@ -82,11 +85,13 @@ public:
   ELFFile(const ELFFile& other) : Filename(other.Filename),
                                   IsLittleEndian(other.IsLittleEndian),
                                   Is64Bit(other.Is64Bit),
-                                  Converter(other.Converter) {}
+                                  Converter(other.Converter),
+                                  FileHeader(other.FileHeader) {}
 
   /// Destructor of \p ELFFile.
   ~ELFFile() {
     Converter.reset();
+    FileHeader.reset();
   }
 
   /// Returns the name of the underlying file a string.
@@ -110,6 +115,14 @@ public:
   /// \return \p true if file is little endian encoded, \p false otherwise
   const bool isLittleEndian() const {
     return IsLittleEndian;
+  }
+
+  /// Returns a constant shared pointer to a object that represents the file's
+  /// header.
+  ///
+  /// \return Pointer to the file header
+  const std::shared_ptr<ELFFileHeader> getHeader() const {
+    return FileHeader;
   }
 
   /// Overrides the stream operator << for \p ELFFile.
