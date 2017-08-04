@@ -38,6 +38,7 @@
 
 #include "fileheader.h"
 #include "segment.h"
+#include "section.h"
 #include <ostream>
 #include <memory>
 
@@ -74,12 +75,22 @@ private:
   /// Holds pointers to all segments of the file
   std::vector<std::shared_ptr<Segment>> Segments;
 
+  /// Holds pointers to all sections of the file
+  std::vector<std::shared_ptr<Section>> Sections;
+
   /// Loads all segmetns from the file stream \p stream and stores them in the
   /// vector \p Segements.
   ///
   /// \param stream A file input stream to read from
   /// \return Number of segments loaded
   Elf64_Half loadSegmentsFromFile(std::ifstream& stream);
+
+  /// Loads all sections from the file stream \p stream and stores them in
+  /// the vector \p VecSections.
+  ///
+  /// \param stream A file input stream to read from
+  /// \return Number of sections loaded
+  Elf64_Half loadSectionsFromFile(std::ifstream& stream);
 
 public:
   /// Constructor of \p ELFFile. Creates a new instance of the class or throws
@@ -104,6 +115,7 @@ public:
     Converter.reset();
     FileHeader.reset();
     Segments.clear();
+    Sections.clear();
   }
 
   /// Returns the name of the underlying file a string.
@@ -128,6 +140,15 @@ public:
   const std::vector<std::shared_ptr<Segment>>& segments() const {
     return Segments;
   }
+
+  /// Returns a constant reference to the vector of sections in this
+  /// ELF file.
+  ///
+  /// @return Reference to a std::vector containing std::shared_ptr<Section>
+  const std::vector<std::shared_ptr<Section>>& sections() const {
+    return Sections;
+  }
+
 
   /// Overrides the stream operator << for \p ELFFile.
   ///

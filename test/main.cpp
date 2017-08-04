@@ -97,3 +97,19 @@ TEST_CASE("Segment access", "[libelfpp]") {
   REQUIRE_FALSE(Seg->getDataString().empty());
   REQUIRE(Seg->getDataString().size() == Seg->getFileSize());
 }
+
+
+TEST_CASE("Section Access", "[libelfpp]") {
+  REQUIRE(file.sections().size() > 0);
+  REQUIRE(file.sections().size() == file.getHeader()->getSectionHeaderNumber());
+  REQUIRE_THROWS_AS(file.sections().at(-1000), std::out_of_range);
+  auto Sec = file.sections().at(10);
+  REQUIRE(Sec);
+  REQUIRE(Sec->getSize() > 0);
+  REQUIRE(Sec->getNameStringOffset());
+  REQUIRE(Sec->getData());
+  REQUIRE(Sec->getAddress());
+  // REQUIRE_FALSE(Sec->getName().empty());
+  // REQUIRE(Sec->getName() == file.getFromStringSection(Sec->getNameStringOffset()));
+  REQUIRE(Sec->getDataString().size() == Sec->getSize());
+}

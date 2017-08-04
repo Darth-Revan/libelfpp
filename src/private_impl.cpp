@@ -257,4 +257,50 @@ std::map<unsigned int, const char*> SegmentTypeStrings {
     {PT_MIPS_ABIFLAGS, "MIPS_ABIFLAGS"},
 };
 
+std::map<unsigned int, const char*> ELFSectionTypeStrings = {
+    {SHT_NULL, "NULL"},
+    {SHT_PROGBITS, "PROGBITS"},
+    {SHT_SYMTAB, "SYMTAB"},
+    {SHT_STRTAB, "STRTAB"},
+    {SHT_RELA, "RELA"},
+    {SHT_HASH, "HASH"},
+    {SHT_DYNAMIC, "DYNAMIC"},
+    {SHT_NOTE, "NOTE"},
+    {SHT_NOBITS, "NOBITS"},
+    {SHT_REL, "REL"},
+    {SHT_SHLIB, "SHLIB"},
+    {SHT_DYNSYM, "DYNSYM"},
+    {SHT_INIT_ARRAY, "INIT_ARRAY"},
+    {SHT_FINI_ARRAY, "FINI_ARRAY"},
+    {SHT_PREINIT_ARRAY, "PREINIT_ARRAY"},
+    {SHT_GROUP, "GROUP"},
+    {SHT_SYMTAB_SHNDX, "SYMTAB_SHDNX"},
+    {SHT_GNU_ATTRIBUTES, "GNU_ATTR"},
+    {SHT_GNU_HASH, "GNU_HASH"},
+    {SHT_GNU_verdef, "GNU_VERDEF"},
+    {SHT_GNU_verneed, "GNU_VERNEED"},
+    {SHT_GNU_versym, "GNU_VERSYM"},
+    {SHT_GNU_LIBLIST, "GNU_LIBLIST"},
+    {SHT_CHECKSUM, "CHECKSUM"},
+    {SHT_SUNW_move, "SUNW_MOVE"},
+    {SHT_SUNW_COMDAT, "SUNW_COMDAT"},
+    {SHT_SUNW_syminfo, "SUNW_SYMINFO"}
+};
+
+std::map<unsigned int, const char> SectionFlagChars {
+    {SHF_WRITE, 'W'},
+    {SHF_ALLOC, 'A'},
+    {SHF_EXECINSTR, 'X'},
+    {SHF_MERGE, 'M'},
+    {SHF_STRINGS, 'S'},
+    {SHF_INFO_LINK, 'I'},
+    {SHF_LINK_ORDER, 'L'},
+    {SHF_GROUP, 'G'},
+    {SHF_TLS, 'T'},
+    {SHF_OS_NONCONFORMING, 'O'},
+    {SHF_MASKOS, 'o'},
+    {SHF_MASKPROC, 'p'},
+    {SHF_EXCLUDE, 'E'}
+};
+
 }

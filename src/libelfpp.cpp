@@ -87,6 +87,7 @@ ELFFile::ELFFile(const std::string& filename) : Filename(filename) {
   }
 
   loadSegmentsFromFile(Input);
+  loadSectionsFromFile(Input);
   Input.close();
 }
 
@@ -132,6 +133,28 @@ Elf64_Half ELFFile::loadSegmentsFromFile(std::ifstream& stream) {
   }
 
   return segmentNumber;
+}
+
+
+// Loads all sections from the file stream
+Elf64_Half ELFFile::loadSectionsFromFile(std::ifstream& stream) {
+  Elf64_Half entrySize = FileHeader->getSectionHeaderSize();
+  Elf64_Half sectionNumber = FileHeader->getSectionHeaderNumber();
+  Elf64_Off offset = FileHeader->getSectionHeaderOffset();
+
+  for (Elf64_Half iter = 0; iter < sectionNumber; ++iter) {
+    std::shared_ptr<Section> Sec;
+    if (Is64Bit) {
+      Sec = std::make_shared<SectionImpl<Elf64_Shdr>>(Converter);
+    } else {
+      Sec = std::make_shared<SectionImpl<Elf32_Shdr>>(Converter);
+    }
+    Sec->loadSection(stream, (std::streamoff) offset + iter * entrySize);
+    Sec->setIndex(iter);
+    Sections.push_back(Sec);
+  }
+
+  return sectionNumber;
 }
 
 } // end of namespace libelfpp

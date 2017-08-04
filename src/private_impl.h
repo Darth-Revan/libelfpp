@@ -39,6 +39,7 @@
 
 #include "libelfpp/fileheader.h"
 #include "libelfpp/segment.h"
+#include "libelfpp/section.h"
 #include <map>
 #include <algorithm>
 
@@ -52,6 +53,12 @@ extern std::map<unsigned int, const char*> ABIStrings;
 
 /// Holds strings representing segment types
 extern std::map<unsigned int, const char*> SegmentTypeStrings;
+
+/// Holds strings representing section types
+extern std::map<unsigned int, const char*> ELFSectionTypeStrings;
+
+/// Holds chars representing section flags
+extern std::map<unsigned int, const char> SectionFlagChars;
 
 /// Template class for the two types of \p Elf_Ehdr
 ///
@@ -402,6 +409,164 @@ protected:
   }
 
 }; // end of class SegmentImpl
+
+
+/// Templated implementation of class \p Section
+template<class T>
+class SectionImpl : public Section {
+
+private:
+  /// The header of this section
+  T Header;
+  /// The index of this section
+  Elf64_Half Index;
+  /// The name of this section
+  std::string Name;
+  /// Data associated with this section
+  char* Data;
+  /// Pointer to an instance of \p EndianessConverter
+  const std::shared_ptr<EndianessConverter> Converter;
+
+public:
+  /// Constructor of \p SectionImpl.
+  ///
+  /// \param converter A pointer to an object of \p EndianessConverter
+  SectionImpl(const std::shared_ptr<EndianessConverter> converter) :
+      Converter(converter), Name(""), Data() {
+    std::fill_n(reinterpret_cast<char*>(&Header), sizeof(Header), '\0');
+  }
+
+  /// Copy constructor of \p SectionImpl.
+  ///
+  /// \param other The instance to copy
+  SectionImpl(const SectionImpl& other) : Header(other.Header),
+                                          Index(other.Index), Name(other.Name),
+                                          Data(other.Data),
+                                          Converter(other.Converter) {}
+
+  /// Destructor of \p SectionImpl. Deletes all data read from the file
+  /// associated with this section.
+  ~SectionImpl() {
+    delete[] Data;
+  }
+
+  Elf64_Half getIndex() const {
+    return Index;
+  }
+
+  Elf64_Word getType() const {
+    return (*Converter) (Header.sh_type);
+  }
+
+  const std::string getTypeString() const {
+    try {
+      return std::string(ELFSectionTypeStrings.at(static_cast<unsigned int>(getType())));
+    } catch (const std::out_of_range&) {
+      return "UNKOWN";
+    }
+  }
+
+  Elf64_Xword getFlags() const {
+    return (*Converter) (Header.sh_flags);
+  }
+
+  const std::string getFlagsString() const {
+    std::string result = "";
+    auto flags = getFlags();
+    for (const auto& elem : SectionFlagChars) {
+      if ((flags & elem.first) == elem.first) {
+        result += elem.second;
+      }
+    }
+    return result;
+  }
+
+  const char* getData() const {
+    return Data;
+  }
+
+  const std::string getDataString() const {
+    std::string Ret {};
+    Ret.assign(Data, getSize());
+    return Ret;
+  }
+
+  const std::string getName() const {
+    return Name;
+  }
+
+  Elf64_Word getInfo() const {
+    return (*Converter) (Header.sh_info);
+  }
+
+  Elf64_Word getLink() const {
+    return (*Converter) (Header.sh_link);
+  }
+
+  Elf64_Xword getAddressAlignment() const {
+    return (*Converter) (Header.sh_addralign);
+  }
+
+  Elf64_Xword getEntrySize() const {
+    return (*Converter) (Header.sh_entsize);
+  }
+
+  Elf64_Addr getAddress() const {
+    return (*Converter) (Header.sh_addr);
+  }
+
+  Elf64_Off getOffset() const {
+    return (*Converter) (Header.sh_offset);
+  }
+
+  Elf64_Xword getSize() const {
+    return (*Converter) (Header.sh_size);
+  }
+
+  Elf64_Word getNameStringOffset() const {
+    return (*Converter) (Header.sh_name);
+  }
+
+protected:
+  /// Loads a section from a input stream at a specific stream offset.
+  ///
+  /// \param stream The input stream to load from
+  /// \param offset The offset at which to load the section
+  void loadSection(std::ifstream& stream, std::streampos offset) {
+    std::fill_n(reinterpret_cast<char*>(&Header), sizeof(Header), '\0');
+    stream.seekg(offset);
+    stream.read(reinterpret_cast<char*>(&Header), sizeof(Header));
+
+    Elf64_Xword Size = getSize();
+    if (Data == nullptr && getType() != SHT_NULL && getType() != SHT_NOBITS) {
+      try {
+        Data = new char[Size];
+      } catch (const std::bad_alloc&) {
+        Data = nullptr;
+        Size = 0;
+      }
+      if (Size != 0) {
+        stream.seekg((*Converter)(Header.sh_offset));
+        stream.read(Data, Size);
+      }
+    }
+  }
+
+  /// Sets the section's member \p Name. This will not touch the file itself.
+  ///
+  /// \param name The name for the section
+  void setName(const std::string& name) {
+    Name = name;
+  }
+
+  /// Sets the section's member \p Index. This will not touch the file itself.
+  ///
+  /// \param index The index for the section
+  void setIndex(const Elf64_Half index) {
+    Index = index;
+  }
+
+}; // end of class SectionImpl
 
 } // end of namespace libelfpp
 
