@@ -101,22 +101,6 @@ public:
     return Filename;
   }
 
-  /// Returns \p true if the underlying file is a 64 Bit file, \p false
-  /// otherwise.
-  ///
-  /// \return \p true if file is 64 Bit, \p false otherwise
-  const bool is64Bit() const {
-    return Is64Bit;
-  }
-
-  /// Returns \p true if the underlying file is a little endian encoded, \p false
-  /// otherwise.
-  ///
-  /// \return \p true if file is little endian encoded, \p false otherwise
-  const bool isLittleEndian() const {
-    return IsLittleEndian;
-  }
-
   /// Returns a constant shared pointer to a object that represents the file's
   /// header.
   ///
