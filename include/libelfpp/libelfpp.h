@@ -175,6 +175,12 @@ public:
     return Sections;
   }
 
+  /// Returns a vector of strings, where each string is the name of a library
+  /// that the underlying ELF file needs (entries in the dynamic section with
+  /// type DT_NEEDED).
+  ///
+  /// \return Vector of needed libraries
+  const std::vector<std::string> getNeededLibraries() const;
 
   /// Overrides the stream operator << for \p ELFFile.
   ///

@@ -187,4 +187,32 @@ Elf64_Half ELFFile::loadSectionsFromFile(std::ifstream& stream) {
   return sectionNumber;
 }
 
+// return needed libraries
+const std::vector<std::string> ELFFile::getNeededLibraries() const {
+  std::shared_ptr<StringSection> StrSec;
+
+  try {
+    if (FileHeader->is64Bit()) {
+      StrSec =
+          std::make_shared<StringSectionImpl<Elf64_Shdr> >(*dynamic_cast<SectionImpl<
+              Elf64_Shdr> *>(sections().at(DynamicSec->getLink()).get()));
+    } else {
+      StrSec =
+          std::make_shared<StringSectionImpl<Elf32_Shdr> >(*dynamic_cast<SectionImpl<
+              Elf32_Shdr> *>(sections().at(DynamicSec->getLink()).get()));
+    }
+  } catch (const std::out_of_range&) {
+    return {};
+  }
+  if (!StrSec) return {};
+
+  std::vector<std::string> result;
+  for (const auto& entry : DynamicSec->getAllEntries()) {
+    if (entry.tag == DT_NEEDED) {
+      result.push_back(StrSec->getString(static_cast<Elf64_Word>(entry.value)));
+    }
+  }
+  return result;
+}
+
 } // end of namespace libelfpp

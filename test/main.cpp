@@ -124,4 +124,5 @@ TEST_CASE("Dynamic Section access", "[libelfpp]") {
   REQUIRE(dyn->getNumEntries() > 0);
   REQUIRE_FALSE(dyn->getEntry(dyn->getNumEntries() + 100));
   REQUIRE(dyn->getAllEntries().size() == dyn->getNumEntries());
+  REQUIRE_FALSE(file.getNeededLibraries().empty());
 }
