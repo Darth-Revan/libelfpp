@@ -598,6 +598,118 @@ public:
 
 }; // end of class StringSectionImpl
 
+
+/// Template implementation of DynamicSection
+template <class T, class U>
+class DynamicSectionImpl final : public SectionImpl<T>, virtual public DynamicSection {
+
+public:
+  /// Constructor of \p DynamicSectionImpl.
+  ///
+  /// \param converter Pointer to an endianess converter
+  DynamicSectionImpl(const std::shared_ptr<EndianessConverter> converter) : SectionImpl<T>(converter) {}
+
+  /// Copy constructor of \p DynamicSectionImpl.
+  ///
+  /// \param other The instance to copy
+  DynamicSectionImpl(const DynamicSectionImpl& other) : SectionImpl<T>(other) {}
+
+  /// Constructor of \p DynamicSectionImpl. Constructs a new instance out of an
+  /// existing instance of \p DynamicSectionImpl.
+  ///
+  /// \param other The base instance
+  DynamicSectionImpl(const SectionImpl<T>& other) : SectionImpl<T>(other) {}
+
+  /// Destructor of \p DynamicSectionImpl.
+  virtual ~DynamicSectionImpl() {
+    // Invokes base class destructor, so nothing to do here.
+  }
+
+  // returns number of entries
+  const Elf64_Xword getNumEntries() const {
+    if (getEntrySize() != 0) {
+      return getSize() / getEntrySize();
+    }
+    return 0;
+  }
+
+  // return entry at index \p index
+  const std::shared_ptr<DynamicSectionEntry> getEntry(const Elf64_Xword index) const {
+    if (index >= getNumEntries()) {
+      return nullptr;
+    }
+    auto Result = std::make_shared<DynamicSectionEntry>();
+    auto C = this->Converter;
+
+    if (!getData() || (index + 1) * getEntrySize() > getSize()) {
+      return nullptr;
+    }
+
+    const U* pEntry = reinterpret_cast<const U*>(getData() + index * getEntrySize());
+    Result->tag = (*C) (pEntry->d_tag);
+
+    switch(Result->tag) {
+    case DT_NULL:
+    case DT_SYMBOLIC:
+    case DT_TEXTREL:
+    case DT_BIND_NOW:
+      Result->value = 0;
+      break;
+    case DT_NEEDED:
+    case DT_PLTRELSZ:
+    case DT_RELASZ:
+    case DT_RELAENT:
+    case DT_STRSZ:
+    case DT_SYMENT:
+    case DT_SONAME:
+    case DT_RPATH:
+    case DT_RELSZ:
+    case DT_RELENT:
+    case DT_PLTREL:
+    case DT_INIT_ARRAYSZ:
+    case DT_FINI_ARRAYSZ:
+    case DT_RUNPATH:
+    case DT_FLAGS:
+    case DT_PREINIT_ARRAYSZ:
+      Result->value = (*C) (pEntry->d_un.d_val);
+      break;
+    case DT_PLTGOT:
+    case DT_HASH:
+    case DT_STRTAB:
+    case DT_SYMTAB:
+    case DT_RELA:
+    case DT_INIT:
+    case DT_FINI:
+    case DT_REL:
+    case DT_DEBUG:
+    case DT_JMPREL:
+    case DT_INIT_ARRAY:
+    case DT_FINI_ARRAY:
+    case DT_PREINIT_ARRAY:
+    default:
+      Result->value = (*C) (pEntry->d_un.d_ptr);
+      break;
+    }
+    return Result;
+  }
+
+  // return all entries
+  const std::vector<DynamicSectionEntry> getAllEntries() const {
+    std::shared_ptr<DynamicSectionEntry> Entry {nullptr};
+    std::vector<DynamicSectionEntry> Result {};
+
+    for (Elf64_Xword iter = 0; iter < getNumEntries(); ++iter) {
+      Entry = getEntry(iter);
+      if (Entry) {
+        Result.push_back(*Entry);
+      }
+    }
+    return Result;
+  }
+
+}; // end of class DynamicSectionImpl
+
+
 } // end of namespace libelfpp
 
 #endif //LIBELFPP_PRIVATE_IMPL_H

@@ -152,6 +152,14 @@ Elf64_Half ELFFile::loadSectionsFromFile(std::ifstream& stream) {
     Sec->loadSection(stream, (std::streamoff) offset + iter * entrySize);
     Sec->setIndex(iter);
     Sections.push_back(Sec);
+
+    if (Sec->getType() == SHT_DYNAMIC) {
+      if (FileHeader->is64Bit()) {
+        DynamicSec = std::make_shared<DynamicSectionImpl<Elf64_Shdr, Elf64_Dyn>>(*dynamic_cast<SectionImpl<Elf64_Shdr>*>(Sec.get()));
+      } else {
+        DynamicSec = std::make_shared<DynamicSectionImpl<Elf32_Shdr, Elf32_Dyn>>(*dynamic_cast<SectionImpl<Elf32_Shdr>*>(Sec.get()));
+      }
+    }
   }
 
   // get primary string section
@@ -172,6 +180,8 @@ Elf64_Half ELFFile::loadSectionsFromFile(std::ifstream& stream) {
     for (const auto& Sec : Sections) {
       Sec->setName(StrSection->getString(Sec->getNameStringOffset()));
     }
+    DynamicSec->setName(StrSection->getString(DynamicSec->getNameStringOffset()));
+    StrSection->setName(StrSection->getString(StrSection->getNameStringOffset()));
   }
 
   return sectionNumber;

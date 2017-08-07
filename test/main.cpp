@@ -113,3 +113,15 @@ TEST_CASE("Section Access", "[libelfpp]") {
   REQUIRE(Sec->getName() == file.getStringSection()->getString(Sec->getNameStringOffset()));
   REQUIRE(Sec->getDataString().size() == Sec->getSize());
 }
+
+TEST_CASE("Dynamic Section access", "[libelfpp]") {
+  auto dyn = file.getDynamicSection();
+  REQUIRE(dyn);
+  REQUIRE_FALSE(dyn->getDataString().empty());
+  REQUIRE(dyn->getSize() > 0);
+  REQUIRE(dyn->getSize() == file.sections()[dyn->getIndex()]->getSize());
+  REQUIRE_FALSE(dyn->getName().empty());
+  REQUIRE(dyn->getNumEntries() > 0);
+  REQUIRE_FALSE(dyn->getEntry(dyn->getNumEntries() + 100));
+  REQUIRE(dyn->getAllEntries().size() == dyn->getNumEntries());
+}

@@ -171,6 +171,42 @@ public:
 
 }; // end of class StringSection
 
+
+/// Struct representing a single entry in a dynamic section
+struct DynamicSectionEntry {
+  /// The entry's tag
+  Elf64_Xword tag;
+  /// The entry's value
+  Elf64_Xword value;
+};
+
+/// Class for accessing dynamic sections
+class DynamicSection : virtual public Section {
+
+public:
+  /// Destructor of DynamicSection
+  virtual ~DynamicSection() {}
+
+  /// Returns the entry at index \p index from the dynamic section or \p nullptr
+  /// if the operation failed or the index would be out-of-bounds.
+  ///
+  /// \param index The index of the entry
+  /// \return Pointer to a entry in the dynamic section of \p nullptr
+  virtual const std::shared_ptr<DynamicSectionEntry> getEntry(const Elf64_Xword index) const = 0;
+
+  /// Returns the number of entries in the dynamic section.
+  ///
+  /// \return Number of entries in the dynamic section
+  virtual const Elf64_Xword getNumEntries() const = 0;
+
+  /// Returns a vector containing all entries in this dynamic section.
+  ///
+  /// \return Vector of pointers to dynamic section entries
+  virtual const std::vector<DynamicSectionEntry> getAllEntries() const = 0;
+
+
+}; // end of class DynamicSection
+
 } // end of namespace elfpp
 
 

@@ -81,6 +81,9 @@ private:
   /// Holds a pointer to the file's primary string section
   std::shared_ptr<StringSection> StrSection;
 
+  /// Holds a pointer to the file's dynamic section
+  std::shared_ptr<DynamicSection> DynamicSec;
+
   /// Loads all segmetns from the file stream \p stream and stores them in the
   /// vector \p Segements.
   ///
@@ -112,7 +115,8 @@ public:
                                   Converter(other.Converter),
                                   FileHeader(other.FileHeader),
                                   Segments(other.Segments),
-                                  StrSection(other.StrSection) {}
+                                  StrSection(other.StrSection),
+                                  DynamicSec(other.DynamicSec) {}
 
   /// Destructor of \p ELFFile.
   ~ELFFile() {
@@ -121,6 +125,7 @@ public:
     Segments.clear();
     Sections.clear();
     StrSection.reset();
+    DynamicSec.reset();
   }
 
   /// Returns the name of the underlying file a string.
@@ -144,6 +149,14 @@ public:
   /// \return Pointer to the string section
   const std::shared_ptr<StringSection> getStringSection() const {
     return StrSection;
+  }
+
+  /// Returns a pointer to the object representing the file's primary dynamic
+  /// section.
+  ///
+  /// \return Pointer to the dynamic section
+  const std::shared_ptr<DynamicSection> getDynamicSection() const {
+    return DynamicSec;
   }
 
   /// Returns a constant reference to the vector of segments in this
