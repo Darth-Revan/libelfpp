@@ -109,7 +109,7 @@ TEST_CASE("Section Access", "[libelfpp]") {
   REQUIRE(Sec->getNameStringOffset());
   REQUIRE(Sec->getData());
   REQUIRE(Sec->getAddress());
-  // REQUIRE_FALSE(Sec->getName().empty());
-  // REQUIRE(Sec->getName() == file.getFromStringSection(Sec->getNameStringOffset()));
+  REQUIRE_FALSE(Sec->getName().empty());
+  REQUIRE(Sec->getName() == file.getStringSection()->getString(Sec->getNameStringOffset()));
   REQUIRE(Sec->getDataString().size() == Sec->getSize());
 }

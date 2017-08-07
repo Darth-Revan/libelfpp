@@ -78,6 +78,9 @@ private:
   /// Holds pointers to all sections of the file
   std::vector<std::shared_ptr<Section>> Sections;
 
+  /// Holds a pointer to the file's primary string section
+  std::shared_ptr<StringSection> StrSection;
+
   /// Loads all segmetns from the file stream \p stream and stores them in the
   /// vector \p Segements.
   ///
@@ -108,7 +111,8 @@ public:
                                   Is64Bit(other.Is64Bit),
                                   Converter(other.Converter),
                                   FileHeader(other.FileHeader),
-                                  Segments(other.Segments) {}
+                                  Segments(other.Segments),
+                                  StrSection(other.StrSection) {}
 
   /// Destructor of \p ELFFile.
   ~ELFFile() {
@@ -116,6 +120,7 @@ public:
     FileHeader.reset();
     Segments.clear();
     Sections.clear();
+    StrSection.reset();
   }
 
   /// Returns the name of the underlying file a string.
@@ -131,6 +136,14 @@ public:
   /// \return Pointer to the file header
   const std::shared_ptr<ELFFileHeader> getHeader() const {
     return FileHeader;
+  }
+
+  /// Returns a pointer to the object representing the file's primary string
+  /// section.
+  ///
+  /// \return Pointer to the string section
+  const std::shared_ptr<StringSection> getStringSection() const {
+    return StrSection;
   }
 
   /// Returns a constant reference to the vector of segments in this

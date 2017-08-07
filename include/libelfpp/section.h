@@ -153,6 +153,24 @@ protected:
 
 }; // end of class Section
 
+
+/// Class for accessing strings in a string section
+class StringSection : virtual public Section {
+
+public:
+
+  /// Destructor of \p StringSection
+  virtual ~StringSection() {}
+
+  /// Returns the string at index from the string section of the underlying
+  /// ELF file.
+  ///
+  /// \param index The index of the string
+  /// \return String at index \p index or empty string if failed
+  virtual const std::string getString(const Elf64_Word index) const = 0;
+
+}; // end of class StringSection
+
 } // end of namespace elfpp
 
 

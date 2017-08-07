@@ -256,7 +256,7 @@ public:
 ///
 /// \tparam T The ELF type
 template<class T>
-class SegmentImpl : public Segment {
+class SegmentImpl final : public Segment {
 
 private:
   /// The header of this segment
@@ -411,9 +411,9 @@ protected:
 
 /// Templated implementation of class \p Section
 template<class T>
-class SectionImpl : public Section {
+class SectionImpl : virtual public Section {
 
-private:
+protected:
   /// The header of this section
   T Header;
   /// The index of this section
@@ -444,7 +444,9 @@ public:
 
   /// Destructor of \p SectionImpl. Deletes all data read from the file
   /// associated with this section.
-  virtual ~SectionImpl() {}
+  virtual ~SectionImpl() {
+    Data.clear();
+  }
 
   Elf64_Half getIndex() const {
     return Index;
@@ -561,6 +563,40 @@ protected:
   }
 
 }; // end of class SectionImpl
+
+
+// Template implementation of StringSection
+template <class T>
+class StringSectionImpl final : public SectionImpl<T>, virtual public StringSection {
+
+public:
+  StringSectionImpl(const std::shared_ptr<EndianessConverter> converter) : SectionImpl<T>(converter) {}
+
+  /// Copy constructor of \p StringSectionImpl.
+  ///
+  /// \param other The instance to copy
+  StringSectionImpl(const StringSectionImpl& other) : SectionImpl<T>(other) {}
+
+  /// Constructor of \p StringSectionImpl. Constructs a new instance out of an
+  /// existing instance of \p SectionImpl.
+  ///
+  /// \param other The base instance
+  StringSectionImpl(const SectionImpl<T>& other) : SectionImpl<T>(other) {}
+
+  /// Destructor of \p SectionImpl.
+  virtual ~StringSectionImpl() {
+    // Invokes base class destructor, so nothing to do here.
+  }
+
+  // Gets a string from the string section
+  const std::string getString(const Elf64_Word index) const {
+    if (index < getSize()) {
+      return std::string(getData() + index);
+    }
+    return std::string();
+  }
+
+}; // end of class StringSectionImpl
 
 } // end of namespace libelfpp
 

@@ -36,6 +36,7 @@
 #include "libelfpp/libelfpp.h"
 #include "private_impl.h"
 #include <cstring>
+#include <iostream>
 
 namespace libelfpp {
 
@@ -116,7 +117,6 @@ Elf64_Half ELFFile::loadSegmentsFromFile(std::ifstream& stream) {
     vBaseAddr = Seg->getVirtualAddress();
     vEndAddr = vBaseAddr + Seg->getMemorySize();
 
-    /*
     for (const auto& Section : Sections) {
       if (Section->getFlags() & SHF_ALLOC) {
         if (vBaseAddr <= Section->getAddress() &&
@@ -129,7 +129,7 @@ Elf64_Half ELFFile::loadSegmentsFromFile(std::ifstream& stream) {
           Seg->addSectionIndex(Section->getIndex());
         }
       }
-    }*/
+    }
   }
 
   return segmentNumber;
@@ -152,6 +152,26 @@ Elf64_Half ELFFile::loadSectionsFromFile(std::ifstream& stream) {
     Sec->loadSection(stream, (std::streamoff) offset + iter * entrySize);
     Sec->setIndex(iter);
     Sections.push_back(Sec);
+  }
+
+  // get primary string section
+  Elf64_Half StringIndex = FileHeader->getSectionHeaderStringTableIndex();
+  if (StringIndex != SHN_UNDEF) {
+
+    Section* tmp = Sections[StringIndex].get();
+    if (FileHeader->is64Bit()) {
+      StrSection =
+          std::make_shared<StringSectionImpl<Elf64_Shdr> >(*dynamic_cast<SectionImpl<
+              Elf64_Shdr> *>(tmp));
+    } else {
+      StrSection =
+          std::make_shared<StringSectionImpl<Elf32_Shdr> >(*dynamic_cast<SectionImpl<
+              Elf32_Shdr> *>(tmp));
+    }
+
+    for (const auto& Sec : Sections) {
+      Sec->setName(StrSection->getString(Sec->getNameStringOffset()));
+    }
   }
 
   return sectionNumber;
