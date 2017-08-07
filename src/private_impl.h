@@ -46,16 +46,16 @@
 namespace libelfpp {
 
 /// Map mapping ELF machines to strings
-extern std::map<unsigned int, const char*> ELFMachineStrings;
+extern std::map<unsigned int, const std::string> ELFMachineStrings;
 
 /// Map mapping ABI codes to strings
-extern std::map<unsigned int, const char*> ABIStrings;
+extern std::map<unsigned int, const std::string> ABIStrings;
 
 /// Holds strings representing segment types
-extern std::map<unsigned int, const char*> SegmentTypeStrings;
+extern std::map<unsigned int, const std::string> SegmentTypeStrings;
 
 /// Holds strings representing section types
-extern std::map<unsigned int, const char*> ELFSectionTypeStrings;
+extern std::map<unsigned int, const std::string> ELFSectionTypeStrings;
 
 /// Holds chars representing section flags
 extern std::map<unsigned int, const char> SectionFlagChars;
@@ -264,7 +264,7 @@ private:
   /// The index of this segment
   Elf64_Half Index;
   /// The data associated with this segment
-  char* Data;
+  std::string Data;
   /// Pointer to an instance of \p EndianessConverter
   const std::shared_ptr<EndianessConverter> Converter;
   /// Holds the indices of associated sections
@@ -275,13 +275,13 @@ public:
   ///
   /// \param converter Pointer to an instance of \p EndianessConverter
   SegmentImpl(const std::shared_ptr<EndianessConverter> converter) :
-      Converter(converter), SectionIndices(), Data(nullptr) {
+      Converter(converter), SectionIndices(), Data("") {
     std::fill_n(reinterpret_cast<char*>(&Header), sizeof(Header), '\0');
   }
 
   /// Destructor of \p SectionImpl.
   ~SegmentImpl() {
-    delete[] Data;
+    Data.clear();
     SectionIndices.clear();
   }
 
@@ -351,14 +351,12 @@ public:
 
   // Returns segment data
   const char* getData() const {
-    return Data;
+    return Data.c_str();
   }
 
   // Returns segment data as string
   const std::string getDataString() const {
-    std::string Ret {};
-    Ret.assign(Data, getFileSize());
-    return Ret;
+    return Data;
   }
 
   // Return section number of segment
@@ -380,14 +378,14 @@ protected:
     Elf64_Xword Size = getFileSize();
     if (getType() != PT_NULL && Size != 0) {
       try {
-        Data = new char[Size];
+        Data = std::string(Size, ' ');
       } catch (std::bad_alloc&) {
-        Data = nullptr;
+        Data = "";
         Size = 0;
       }
-      if (Data != 0) {
+      if (!Data.empty()) {
         stream.seekg((*Converter) (Header.p_offset));
-        stream.read(Data, Size);
+        stream.read(&Data[0], Size);
       }
     }
   }
@@ -423,7 +421,7 @@ private:
   /// The name of this section
   std::string Name;
   /// Data associated with this section
-  char* Data;
+  std::string Data;
   /// Pointer to an instance of \p EndianessConverter
   const std::shared_ptr<EndianessConverter> Converter;
 
@@ -446,9 +444,7 @@ public:
 
   /// Destructor of \p SectionImpl. Deletes all data read from the file
   /// associated with this section.
-  ~SectionImpl() {
-    delete[] Data;
-  }
+  virtual ~SectionImpl() {}
 
   Elf64_Half getIndex() const {
     return Index;
@@ -482,13 +478,11 @@ public:
   }
 
   const char* getData() const {
-    return Data;
+    return Data.c_str();
   }
 
   const std::string getDataString() const {
-    std::string Ret {};
-    Ret.assign(Data, getSize());
-    return Ret;
+    return Data;
   }
 
   const std::string getName() const {
@@ -538,16 +532,16 @@ protected:
     stream.read(reinterpret_cast<char*>(&Header), sizeof(Header));
 
     Elf64_Xword Size = getSize();
-    if (Data == nullptr && getType() != SHT_NULL && getType() != SHT_NOBITS) {
+    if (Data.empty() && getType() != SHT_NULL && getType() != SHT_NOBITS) {
       try {
-        Data = new char[Size];
+        Data = std::string(Size, ' ');
       } catch (const std::bad_alloc&) {
-        Data = nullptr;
+        Data = "";
         Size = 0;
       }
-      if (Size != 0) {
+      if (!Data.empty()) {
         stream.seekg((*Converter)(Header.sh_offset));
-        stream.read(Data, Size);
+        stream.read(&Data[0], Size);
       }
     }
   }

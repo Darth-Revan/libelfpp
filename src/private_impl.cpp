@@ -38,7 +38,7 @@
 
 namespace libelfpp {
 
-std::map<unsigned int, const char*> ELFMachineStrings = {
+std::map<unsigned int, const std::string> ELFMachineStrings = {
   {EM_NONE, "No Machine"},
   {EM_M32, "AT&T WE 32100"},
   {EM_SPARC, "SPARC"},
@@ -220,7 +220,7 @@ std::map<unsigned int, const char*> ELFMachineStrings = {
   {EM_EMX8, "KM211 KMX8"},
 };
 
-std::map<unsigned int, const char*> ABIStrings = {
+std::map<unsigned int, const std::string> ABIStrings = {
     {ELFOSABI_NONE, "System V"},
     {ELFOSABI_HPUX, "HP-UX"},
     {ELFOSABI_NETBSD, "NetBSD"},
@@ -237,7 +237,7 @@ std::map<unsigned int, const char*> ABIStrings = {
     {ELFOSABI_STANDALONE, "Standalone (Embedded) application"}
 };
 
-std::map<unsigned int, const char*> SegmentTypeStrings {
+std::map<unsigned int, const std::string> SegmentTypeStrings {
     {PT_NULL, "NULL"},
     {PT_LOAD, "LOAD"},
     {PT_DYNAMIC, "DYNAMIC"},
@@ -257,7 +257,7 @@ std::map<unsigned int, const char*> SegmentTypeStrings {
     {PT_MIPS_ABIFLAGS, "MIPS_ABIFLAGS"},
 };
 
-std::map<unsigned int, const char*> ELFSectionTypeStrings = {
+std::map<unsigned int, const std::string> ELFSectionTypeStrings = {
     {SHT_NULL, "NULL"},
     {SHT_PROGBITS, "PROGBITS"},
     {SHT_SYMTAB, "SYMTAB"},
