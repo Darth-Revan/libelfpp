@@ -155,9 +155,9 @@ Elf64_Half ELFFile::loadSectionsFromFile(std::ifstream& stream) {
 
     if (Sec->getType() == SHT_DYNAMIC) {
       if (FileHeader->is64Bit()) {
-        DynamicSec = std::make_shared<DynamicSectionImpl<Elf64_Shdr, Elf64_Dyn>>(*dynamic_cast<SectionImpl<Elf64_Shdr>*>(Sec.get()));
+        DynamicSec = DynamicSectionImpl<Elf64_Shdr, Elf64_Dyn>::fromSection(Sec);
       } else {
-        DynamicSec = std::make_shared<DynamicSectionImpl<Elf32_Shdr, Elf32_Dyn>>(*dynamic_cast<SectionImpl<Elf32_Shdr>*>(Sec.get()));
+        DynamicSec = DynamicSectionImpl<Elf32_Shdr, Elf32_Dyn>::fromSection(Sec);
       }
     }
   }
@@ -165,16 +165,10 @@ Elf64_Half ELFFile::loadSectionsFromFile(std::ifstream& stream) {
   // get primary string section
   Elf64_Half StringIndex = FileHeader->getSectionHeaderStringTableIndex();
   if (StringIndex != SHN_UNDEF) {
-
-    Section* tmp = Sections[StringIndex].get();
     if (FileHeader->is64Bit()) {
-      StrSection =
-          std::make_shared<StringSectionImpl<Elf64_Shdr> >(*dynamic_cast<SectionImpl<
-              Elf64_Shdr> *>(tmp));
+      StrSection = StringSectionImpl<Elf64_Shdr>::fromSection(Sections[StringIndex]);
     } else {
-      StrSection =
-          std::make_shared<StringSectionImpl<Elf32_Shdr> >(*dynamic_cast<SectionImpl<
-              Elf32_Shdr> *>(tmp));
+      StrSection = StringSectionImpl<Elf32_Shdr>::fromSection(Sections[StringIndex]);
     }
 
     for (const auto& Sec : Sections) {

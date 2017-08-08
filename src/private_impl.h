@@ -583,6 +583,19 @@ public:
   /// \param other The base instance
   StringSectionImpl(const SectionImpl<T>& other) : SectionImpl<T>(other) {}
 
+  // creates a new instance from a section pointer
+  static const std::shared_ptr<StringSection> fromSection(const std::shared_ptr<Section>& base) {
+    if (!base)
+      return nullptr;
+
+    std::shared_ptr<StringSection> Result = std::make_shared<StringSectionImpl<T>>(*dynamic_cast<SectionImpl<T>*>(base.get()));
+
+    if (!Result) {
+      return nullptr;
+    }
+    return Result;
+  }
+
   /// Destructor of \p SectionImpl.
   virtual ~StringSectionImpl() {
     // Invokes base class destructor, so nothing to do here.
@@ -631,6 +644,19 @@ public:
       return getSize() / getEntrySize();
     }
     return 0;
+  }
+
+  // creates a new instance from a section pointer
+  static const std::shared_ptr<DynamicSection> fromSection(const std::shared_ptr<Section>& base) {
+    if (!base)
+      return nullptr;
+
+    std::shared_ptr<DynamicSection> Result = std::make_shared<DynamicSectionImpl<T, U>>(*dynamic_cast<SectionImpl<T>*>(base.get()));
+
+    if (!Result) {
+      return nullptr;
+    }
+    return Result;
   }
 
   // return entry at index \p index
