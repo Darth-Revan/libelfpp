@@ -157,6 +157,7 @@ TEST_CASE("Relocation access", "[libelfpp]") {
   auto reloc = relocs[0];
   REQUIRE_FALSE(reloc->getName().empty());
   REQUIRE(reloc->getNumEntries() > 0);
+  REQUIRE(reloc->getNumEntries() == reloc->getAllEntries().size());
   auto entry = reloc->getEntry(reloc->getNumEntries() - 1);
   REQUIRE(entry);
   REQUIRE_FALSE(entry->SymbolInstance->name.empty());
@@ -168,6 +169,7 @@ TEST_CASE("Note section access", "[libelfpp]") {
   auto notes = file.noteSections();
   REQUIRE(notes.size() > 0);
   auto note = notes[0];
+  REQUIRE(note->getNumEntries() == note->getAllEntries().size());
   REQUIRE_FALSE(note->getEntry(note->getNumEntries()));
   if (note->getNumEntries() > 0) {
     REQUIRE(note->getEntry(0));
