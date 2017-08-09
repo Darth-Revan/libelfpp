@@ -180,6 +180,56 @@ struct DynamicSectionEntry {
   Elf64_Xword tag;
   /// The entry's value
   Elf64_Xword value;
+
+  /// Returns the type of entry as string.
+  ///
+  /// \return Entry type as string
+  const std::string getTypeString() const {
+    switch(tag) {
+    case DT_NULL: return "NULL";
+    case DT_NEEDED: return "NEEDED";
+    case DT_PLTRELSZ: return "PLTRELSZ";
+    case DT_PLTGOT: return "PLTGOT";
+    case DT_HASH: return "HASH";
+    case DT_STRTAB: return "STRTAB";
+    case DT_SYMTAB: return "SYMTAB";
+    case DT_RELA: return "RELA";
+    case DT_RELASZ: return "RELASZ";
+    case DT_RELAENT: return "RELAENT";
+    case DT_STRSZ: return "STRSZ";
+    case DT_SYMENT: return "SYMENT";
+    case DT_INIT: return "INIT";
+    case DT_FINI: return "FINI";
+    case DT_SONAME: return "SONAME";
+    case DT_RPATH: return "RPATH";
+    case DT_SYMBOLIC: return "SYMBOLIC";
+    case DT_REL: return "REL";
+    case DT_RELSZ: return "RELSZ";
+    case DT_RELENT: return "RELENT";
+    case DT_PLTREL: return "PLTREL";
+    case DT_DEBUG: return "DEBUG";
+    case DT_TEXTREL: return "TEXTREL";
+    case DT_JMPREL: return "JMPREL";
+    case DT_BIND_NOW: return "BIND_NOW";
+    case DT_INIT_ARRAY: return "INIT_ARRAY";
+    case DT_INIT_ARRAYSZ: return "INIT_ARRAYSZ";
+    case DT_FINI_ARRAY: return "FINI_ARRAY";
+    case DT_FINI_ARRAYSZ: return "FINI_ARRAYSZ";
+    case DT_RUNPATH: return "RUNPATH";
+    case DT_FLAGS: return "FLAGS";
+    case DT_PREINIT_ARRAY: return "PREINIT_ARRAY";
+    case DT_PREINIT_ARRAYSZ: return "PREINIT_ARRAYSZ";
+    case DT_GNU_HASH: return "GNU_HASH";
+    case DT_VERNEED: return "VERNEED";
+    case DT_VERNEEDNUM: return "VERNEEDNUM";
+    case DT_VERSYM: return "VERSYM";
+    case DT_RELACOUNT: return "RELACOUNT";
+    default: return std::string();
+    }
+  }
+  /*
+
+   */
 };
 
 /// Class for accessing dynamic sections
