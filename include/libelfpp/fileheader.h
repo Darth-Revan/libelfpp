@@ -59,7 +59,7 @@ public:
   /// Returns the ELF file's version.
   ///
   /// \return The ELF file's version
-  virtual unsigned char getVersion() const = 0;
+  virtual unsigned int getVersion() const = 0;
 
   /// Returns the ELF file's encoding (\p true if encoding is little endian,
   /// \p false otherwise).

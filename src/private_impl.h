@@ -42,6 +42,7 @@
 #include "libelfpp/section.h"
 #include <map>
 #include <algorithm>
+#include <iostream>
 
 namespace libelfpp {
 
@@ -140,8 +141,8 @@ public:
   }
 
   // Returns the ELF file's version.
-  unsigned char getVersion() const {
-    return static_cast<unsigned char>((*Converter) (Header.e_version));
+  unsigned int getVersion() const {
+    return static_cast<unsigned int>((*Converter) (Header.e_version));
   }
 
   // Returns the ELF file's encoding
