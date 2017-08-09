@@ -377,3 +377,104 @@ TEST_CASE("Read example file fibonacci", "[test/fibonacci]") {
   REQUIRE(entry->SymbolInstance->name == "__libc_start_main");
   REQUIRE(entry->SymbolInstance->value == 0);
 }
+
+
+TEST_CASE("Read example file libexamplelib", "[test/libexamplelib]") {
+  ELFFile file = ELFFile("libexamplelib.so");
+  auto head = file.getHeader();
+  REQUIRE(head);
+  REQUIRE(head->isLittleEndian());
+  REQUIRE(head->is64Bit());
+  REQUIRE(head->getVersion() == 1);
+  REQUIRE(head->getELFTypeString() == "Shared Object");
+  REQUIRE(head->getABIString() == "System V");
+  REQUIRE(head->getEntryPoint() == 2016);
+  REQUIRE(head->getProgramHeaderSize() == 56);
+  REQUIRE(head->getProgramHeaderNumber() == 7);
+  REQUIRE(head->getSectionHeaderNumber() == 26);
+  REQUIRE(head->getSectionHeaderStringTableIndex() == 25);
+
+  auto sections = file.sections();
+  REQUIRE(sections.size() == 26);
+  auto bss = sections[19];
+  REQUIRE(bss->getName() == ".data.rel.ro");
+  REQUIRE(bss->getTypeString() == "PROGBITS");
+  REQUIRE(bss->getAddress() == 2100688);
+  REQUIRE(bss->getOffset() == 3536);
+  REQUIRE(bss->getSize() == 8);
+  REQUIRE(bss->getFlagsString() == "WA");
+  REQUIRE(bss->getAddressAlignment() == 8);
+
+  auto segments = file.segments();
+  REQUIRE(segments.size() == 7);
+  auto load = segments[3];
+  REQUIRE(load->getType() == PT_NOTE);
+  REQUIRE(load->getOffset() == 456);
+  REQUIRE(load->getVirtualAddress() == 456);
+  REQUIRE(load->getPhysicalAddress() == 456);
+  REQUIRE(load->getFileSize() == 36);
+  REQUIRE(load->getMemorySize() == 36);
+  REQUIRE(load->getFlags() == PF_R);
+  REQUIRE(load->getAddressAlignment() == 4);
+  REQUIRE(load->getAssociatedSections().size() == 1);
+  REQUIRE(load->getAssociatedSections()[0]->getName() == ".note.gnu.build-id");
+
+  auto dyn = file.getDynamicSection();
+  REQUIRE(dyn);
+  REQUIRE(dyn->getNumEntries() == 32);
+  REQUIRE(dyn->getOffset() == 3544);
+  REQUIRE(dyn->getName() == ".dynamic");
+  auto e = dyn->getEntry(4);
+  REQUIRE(e);
+  REQUIRE(e->tag == DT_SONAME);
+  REQUIRE(e->getTypeString() == "SONAME");
+  e = dyn->getEntry(22);
+  REQUIRE(e);
+  REQUIRE(e->tag == DT_RELAENT);
+  REQUIRE(e->getTypeString() == "RELAENT");
+  REQUIRE(e->value == 24);
+
+  auto req = file.getNeededLibraries();
+  REQUIRE(req.size());
+  REQUIRE(std::find(req.begin(), req.end(), "libc.so.6") != req.end());
+  REQUIRE(std::find(req.begin(), req.end(), "libstdc++.so.6") != req.end());
+
+  auto symbolSecs = file.symbolSections();
+  REQUIRE(symbolSecs.size() == 1);
+  auto syms = symbolSecs[0];
+  REQUIRE(syms->getName() == ".dynsym");
+  REQUIRE(syms->getNumSymbols() == 16);
+  auto sym = syms->getSymbol(11);
+  REQUIRE(sym);
+  REQUIRE(sym->value == 2101312);
+  REQUIRE(sym->size == 0);
+  REQUIRE(sym->sectionIndex == 23);
+  REQUIRE(sym->getBindString() == "GLOBAL");
+  REQUIRE(sym->getTypeString() == "NOTYPE");
+  REQUIRE(sym->name == "_end");
+
+  auto notes = file.noteSections();
+  REQUIRE(notes.size() == 1);
+  auto note = notes[0];
+  REQUIRE(note);
+  REQUIRE(note->getOffset() == 456);
+  REQUIRE(note->getSize() == 36);
+  REQUIRE(note->getNumEntries() == 1);
+  REQUIRE(note->getEntry(0)->Name == "GNU");
+  REQUIRE(note->getEntry(0)->Description.length() == 20);
+
+  auto relocs = file.relocationSections();
+  REQUIRE(relocs.size() == 2);
+  auto reloc = relocs[0];
+  REQUIRE(reloc);
+  REQUIRE(reloc->getName() == ".rela.dyn");
+  REQUIRE(reloc->getNumEntries() == 9);
+  REQUIRE(reloc->getOffset() == 1584);
+  auto entry = reloc->getEntry(1);
+  REQUIRE(entry->Offset == 2100672);
+  REQUIRE(entry->Type == R_X86_64_RELATIVE);
+  REQUIRE(entry->Info == 8);
+  REQUIRE(entry->Addend == 2080);
+  REQUIRE(entry->SymbolInstance->name == "");
+  REQUIRE(entry->SymbolInstance->value == 0);
+}
