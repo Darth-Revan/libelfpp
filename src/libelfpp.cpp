@@ -178,11 +178,13 @@ Elf64_Half ELFFile::loadSectionsFromFile(std::ifstream& stream) {
       if (Sec->getType() == SHT_DYNSYM || Sec->getType() == SHT_SYMTAB) {
         std::shared_ptr<SymbolSection> Sym;
         std::shared_ptr<StringSection> Str;
+
         if (FileHeader->is64Bit()) {
           Str = StringSectionImpl<Elf64_Shdr>::fromSection(Sections[Sec->getLink()]);
           Sym = SymbolSectionImpl<Elf64_Shdr, Elf64_Sym>::fromSection(Sec, Str);
         } else {
-
+          Str = StringSectionImpl<Elf32_Shdr>::fromSection(Sections[Sec->getLink()]);
+          Sym = SymbolSectionImpl<Elf32_Shdr, Elf32_Sym>::fromSection(Sec, Str);
         }
         if (Sym)
           SymbolSections.push_back(Sym);
@@ -200,7 +202,7 @@ Elf64_Half ELFFile::loadSectionsFromFile(std::ifstream& stream) {
         } else {
           Str = StringSectionImpl<Elf32_Shdr>::fromSection(Sections[Sections[Sec->getLink()]->getLink()]);
           Sym = SymbolSectionImpl<Elf32_Shdr, Elf32_Sym>::fromSection(Sections[Sec->getLink()], Str);
-          Reloc = RelocationSectionImpl<Elf32_Shdr>::fromSection(Sec, Sym, true);
+          Reloc = RelocationSectionImpl<Elf32_Shdr>::fromSection(Sec, Sym, false);
         }
         if (Reloc)
           RelocSections.push_back(Reloc);
