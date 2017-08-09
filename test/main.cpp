@@ -150,3 +150,16 @@ TEST_CASE("Symbol access", "[libelfpp]") {
   REQUIRE(Sym);
   REQUIRE_FALSE(Sym->name.empty());
 }
+
+TEST_CASE("Relocation access", "[libelfpp]") {
+  auto relocs = file.relocationSections();
+  REQUIRE(relocs.size() > 0);
+  auto reloc = relocs[0];
+  REQUIRE_FALSE(reloc->getName().empty());
+  REQUIRE(reloc->getNumEntries() > 0);
+  auto entry = reloc->getEntry(reloc->getNumEntries() - 1);
+  REQUIRE(entry);
+  REQUIRE_FALSE(entry->SymbolString.empty());
+  REQUIRE(entry->Offset);
+  REQUIRE(entry->Info);
+}

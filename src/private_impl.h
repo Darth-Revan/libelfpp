@@ -831,6 +831,173 @@ public:
 
 }; // end of class SymbolSectionImpl
 
+
+/// Template implementation of \p RelocationSection
+template <class T>
+class RelocationSectionImpl : public SectionImpl<T>, virtual public RelocationSection {
+
+private:
+  /// Holds a pointer to the associated symbol section
+  std::shared_ptr<SymbolSection> Symbols;
+  /// \p true if relocation section is 64 bit, \p false otherwise
+  const bool is64Bit;
+
+public:
+  /// Constructor of \p RelocationSectionImpl.
+  ///
+  /// \param converter Pointer to an endianess converter
+  /// \param sym Shared Pointer to the symbol section to use in this relocation
+  /// \param is64Bit \p true if relocation section is 64 bit, \p false otherwise
+  RelocationSectionImpl(const std::shared_ptr<EndianessConverter> converter,
+                        const std::shared_ptr<SymbolSection>& sym,
+                        const bool is64Bit) :
+      SectionImpl<T>(converter), Symbols(sym), is64Bit(is64Bit) {}
+
+  /// Copy constructor of \p RelocationSectionImpl.
+  ///
+  /// \param other The instance to copy
+  RelocationSectionImpl(const RelocationSectionImpl& other) :
+      SectionImpl<T>(other), Symbols(other.Symbols), is64Bit(other.is64Bit) {}
+
+  /// Constructor of \p RelocationSectionImpl. Constructs a new instance out of
+  /// an existing instance of \p RelocationSectionImpl and an intance of
+  /// \p SymbolSection.
+  ///
+  /// \param other The base instance
+  /// \param sym The symbol section to use
+  /// \param is64Bit \p true if section is 64 Bit, \p false otherwise
+  RelocationSectionImpl(const SectionImpl<T>& other,
+                        const std::shared_ptr<SymbolSection>& sym,
+                        const bool is64Bit)
+      : SectionImpl<T>(other), Symbols(sym), is64Bit(is64Bit) {}
+
+  /// Destructor of \p RelocationSectionImpl.
+  virtual ~RelocationSectionImpl() {
+    Symbols.reset();
+  }
+
+  // creates a new instance from a section pointer
+  static const std::shared_ptr<RelocationSection> fromSection(
+      const std::shared_ptr<Section>& base,
+      const std::shared_ptr<SymbolSection>& sym,
+      const bool is64Bit) {
+
+    if (!base || !sym)
+      return nullptr;
+
+    std::shared_ptr<RelocationSection> Result = std::make_shared<RelocationSectionImpl<T>>(
+        *dynamic_cast<SectionImpl<T>*>(base.get()), sym, is64Bit);
+
+    if (!Result) {
+      return nullptr;
+    }
+    return Result;
+  }
+
+  // returns number of entries
+  const Elf64_Xword getNumEntries() const {
+    if (getEntrySize() != 0) {
+      return getSize() / getEntrySize();
+    }
+    return 0;
+  }
+
+  // return all entries
+  const std::vector<std::shared_ptr<RelocationEntry>> getAllEntries() const {
+    std::shared_ptr<RelocationEntry> Entry {nullptr};
+    std::vector<std::shared_ptr<RelocationEntry>> Result {};
+
+    for (Elf64_Xword iter = 0; iter < getNumEntries(); ++iter) {
+      Entry = getEntry(iter);
+      if (Entry) {
+        Result.push_back(Entry);
+      }
+    }
+    return Result;
+  }
+
+
+  /// Generically returns an entry without addend from the underlying relocation
+  /// section. The entry is specified by \p index.
+  ///
+  /// \tparam T Type of the entry
+  /// \param index Index of the entry in the relocation section
+  /// \return Entry of the relocation section
+  template <typename U>
+  const std::shared_ptr<RelocationEntry> getEntryRel(const Elf64_Xword index) const {
+    const U* pEntry = reinterpret_cast<const U*>(getData() + index * getEntrySize());
+    std::shared_ptr<RelocationEntry> Result = std::make_shared<RelocationEntry>();
+    auto C = this->Converter;
+
+    Result->Offset = (*C) (pEntry->r_offset);
+    Result->Info = (*C) (pEntry->r_info);
+    Result->Symbol = getSymbolAndType<U>::getSym(Result->Info);
+    Result->Type = getSymbolAndType<U>::getType(Result->Info);
+    Result->Addend = 0;
+    return Result;
+  }
+
+  /// Generically returns an entry with addend from the underlying relocation
+  /// section. The entry is specified by \p index.
+  ///
+  /// \tparam T Type of the entry
+  /// \param index Index of the entry in the relocation section
+  /// \return Entry of the relocation section
+  template <typename U>
+  const std::shared_ptr<RelocationEntry> getEntryRela(const Elf64_Xword index) const {
+    const U* pEntry = reinterpret_cast<const U*>(getData() + index * getEntrySize());
+    std::shared_ptr<RelocationEntry> Result = std::make_shared<RelocationEntry>();
+    auto C = this->Converter;
+
+    Result->Offset = (*C) (pEntry->r_offset);
+    Result->Info = (*C) (pEntry->r_info);
+    Result->Symbol = getSymbolAndType<U>::getSym(Result->Info);
+    Result->Type = getSymbolAndType<U>::getType(Result->Info);
+    Result->Addend = (*C) (pEntry->r_addend);
+    return Result;
+  }
+
+  // returns single entry from relocation section
+  const std::shared_ptr<RelocationEntry> getEntry(const Elf64_Xword index) const {
+    if (index >= getNumEntries()) {
+      return nullptr;
+    }
+
+    std::shared_ptr<RelocationEntry> Result;
+    if (is64Bit) {
+      switch (getType()) {
+      case SHT_REL:
+        Result =  getEntryRel<Elf64_Rel>(index);
+        break;
+      case SHT_RELA:
+        Result = getEntryRela<Elf64_Rela>(index);
+        break;
+      default:
+        return nullptr;
+      }
+    } else {
+      switch (getType()) {
+      case SHT_REL:
+        Result = getEntryRel<Elf32_Rel>(index);
+        break;
+      case SHT_RELA:
+        Result = getEntryRela <Elf32_Rela>(index);
+        break;
+      default:
+        return nullptr;
+      }
+    }
+
+    auto Sym = Symbols->getSymbol(Result->Symbol);
+    if (Sym) {
+      Result->SymbolString = Sym->name;
+      Result->SymbolValue = Sym->value;
+    }
+    return Result;
+  }
+
+}; // end of class RelocationSectionImpl
+
 } // end of namespace libelfpp
 
 #endif //LIBELFPP_PRIVATE_IMPL_H

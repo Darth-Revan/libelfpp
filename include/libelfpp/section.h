@@ -293,6 +293,139 @@ public:
 
 }; // end of class SymbolSection
 
+
+/// Struct representing a single entry in a relocation section
+struct RelocationEntry {
+  /// The offset of the entry
+  Elf64_Addr Offset;
+  /// The symbol table index of this entry
+  Elf64_Word Symbol;
+  /// The type of this entry
+  Elf64_Word Type;
+  /// Info field of this entry
+  Elf64_Xword Info;
+  /// The addend of this entry (will be 0 in relocation sections without addends)
+  Elf64_Sxword Addend;
+  /// Value of the symbol
+  Elf64_Addr SymbolValue;
+  /// The string stored for this symbol in the string table
+  std::string SymbolString;
+};
+
+/// Template for retrieving type and symbol of a relocation entry
+template<typename T> struct getSymbolAndType;
+
+/// Specialized template for 32 Bit relocation
+template<>
+struct getSymbolAndType<Elf32_Rel> {
+
+  /// Returns the symbol of relocation info.
+  ///
+  /// \param info The relocation info
+  /// \return Symbol information
+  static Elf32_Word getSym(Elf32_Xword info) {
+    return ELF32_R_SYM(static_cast<Elf32_Word>(info));
+  }
+
+  /// Returns the type of relocation info.
+  ///
+  /// \param info The relocation info
+  /// \return Type information
+  static Elf32_Word getType(Elf32_Xword info) {
+    return ELF32_R_TYPE(static_cast<Elf32_Word>(info));
+  }
+};
+
+/// Specialized template for 32 Bit relocation with addends
+template<>
+struct getSymbolAndType<Elf32_Rela> {
+
+  /// Returns the symbol of relocation info.
+  ///
+  /// \param info The relocation info
+  /// \return Symbol information
+  static Elf32_Word getSym(Elf32_Xword info) {
+    return ELF32_R_SYM(static_cast<Elf32_Word>(info));
+  }
+
+  /// Returns the type of relocation info.
+  ///
+  /// \param info The relocation info
+  /// \return Type information
+  static Elf32_Word getType(Elf32_Xword info) {
+    return ELF32_R_TYPE(static_cast<Elf32_Word>(info));
+  }
+};
+
+/// Specialized template for 64 Bit relocation
+template<>
+struct getSymbolAndType<Elf64_Rel> {
+
+  /// Returns the symbol of relocation info.
+  ///
+  /// \param info The relocation info
+  /// \return Symbol information
+  static Elf64_Word getSym(Elf64_Xword info) {
+    return static_cast<Elf64_Word>(ELF64_R_SYM(info));
+  }
+
+  /// Returns the type of relocation info.
+  ///
+  /// \param info The relocation info
+  /// \return Type information
+  static Elf64_Word getType(Elf64_Xword info) {
+    return static_cast<Elf64_Word>(ELF64_R_TYPE(info));
+  }
+};
+
+/// Specialized template for 64 Bit relocation with addends
+template<>
+struct getSymbolAndType<Elf64_Rela> {
+
+  /// Returns the symbol of relocation info.
+  ///
+  /// \param info The relocation info
+  /// \return Symbol information
+  static Elf64_Word getSym(Elf64_Xword info) {
+    return static_cast<Elf64_Word>(ELF64_R_SYM(info));
+  }
+
+  /// Returns the type of relocation info.
+  ///
+  /// \param info The relocation info
+  /// \return Type information
+  static Elf64_Word getType(Elf64_Xword info) {
+    return static_cast<Elf64_Word>(ELF64_R_TYPE(info));
+  }
+};
+
+
+/// Class representing a relocation section
+class RelocationSection : virtual public Section {
+
+public:
+  /// Destructor of \p RelocationSection
+  virtual ~RelocationSection() {}
+
+  /// Returns the entry at index \p index from the relocation section or
+  /// \p nullptr if the operation failed or the index would be out-of-bounds.
+  ///
+  /// \param index The index of the entry
+  /// \return Pointer to a entry in the relocation section of \p nullptr
+  virtual const std::shared_ptr<RelocationEntry> getEntry(const Elf64_Xword index) const = 0;
+
+  /// Returns the number of entries in the relocation section.
+  ///
+  /// \return Number of entries in the relocation section
+  virtual const Elf64_Xword getNumEntries() const = 0;
+
+  /// Returns a vector containing all entries in this relocation section.
+  ///
+  /// \return Vector of pointers to relocation section entries
+  virtual const std::vector<std::shared_ptr<RelocationEntry>> getAllEntries() const = 0;
+
+}; // end of class RelocationSection
+
 } // end of namespace elfpp
 
 

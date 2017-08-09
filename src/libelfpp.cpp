@@ -173,12 +173,9 @@ Elf64_Half ELFFile::loadSectionsFromFile(std::ifstream& stream) {
 
     for (const auto& Sec : Sections) {
       Sec->setName(StrSection->getString(Sec->getNameStringOffset()));
+
       // get symbol sections in this loop, so we do not need to loop again
       if (Sec->getType() == SHT_DYNSYM || Sec->getType() == SHT_SYMTAB) {
-        /*SymbolSections.push_back(
-            std::make_shared<SymbolSection>(Sec, Converter,
-                                            Sections[Sec->getLink()], FileClass));
-                                            */
         std::shared_ptr<SymbolSection> Sym;
         std::shared_ptr<StringSection> Str;
         if (FileHeader->is64Bit()) {
@@ -189,6 +186,24 @@ Elf64_Half ELFFile::loadSectionsFromFile(std::ifstream& stream) {
         }
         if (Sym)
           SymbolSections.push_back(Sym);
+      }
+
+      if (Sec->getType() == SHT_REL || Sec->getType() == SHT_RELA) {
+        std::shared_ptr<RelocationSection> Reloc;
+        std::shared_ptr<StringSection> Str;
+        std::shared_ptr<SymbolSection> Sym;
+
+        if (FileHeader->is64Bit()) {
+          Str = StringSectionImpl<Elf64_Shdr>::fromSection(Sections[Sections[Sec->getLink()]->getLink()]);
+          Sym = SymbolSectionImpl<Elf64_Shdr, Elf64_Sym>::fromSection(Sections[Sec->getLink()], Str);
+          Reloc = RelocationSectionImpl<Elf64_Shdr>::fromSection(Sec, Sym, true);
+        } else {
+          Str = StringSectionImpl<Elf32_Shdr>::fromSection(Sections[Sections[Sec->getLink()]->getLink()]);
+          Sym = SymbolSectionImpl<Elf32_Shdr, Elf32_Sym>::fromSection(Sections[Sec->getLink()], Str);
+          Reloc = RelocationSectionImpl<Elf32_Shdr>::fromSection(Sec, Sym, true);
+        }
+        if (Reloc)
+          RelocSections.push_back(Reloc);
       }
     }
 
