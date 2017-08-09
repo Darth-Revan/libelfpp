@@ -299,17 +299,15 @@ struct RelocationEntry {
   /// The offset of the entry
   Elf64_Addr Offset;
   /// The symbol table index of this entry
-  Elf64_Word Symbol;
+  Elf64_Word SymbolIndex;
   /// The type of this entry
   Elf64_Word Type;
   /// Info field of this entry
   Elf64_Xword Info;
   /// The addend of this entry (will be 0 in relocation sections without addends)
   Elf64_Sxword Addend;
-  /// Value of the symbol
-  Elf64_Addr SymbolValue;
-  /// The string stored for this symbol in the string table
-  std::string SymbolString;
+  /// Pointer to the symbol
+  std::shared_ptr<Symbol> SymbolInstance;
 };
 
 /// Template for retrieving type and symbol of a relocation entry

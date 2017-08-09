@@ -159,7 +159,7 @@ TEST_CASE("Relocation access", "[libelfpp]") {
   REQUIRE(reloc->getNumEntries() > 0);
   auto entry = reloc->getEntry(reloc->getNumEntries() - 1);
   REQUIRE(entry);
-  REQUIRE_FALSE(entry->SymbolString.empty());
+  REQUIRE_FALSE(entry->SymbolInstance->name.empty());
   REQUIRE(entry->Offset);
   REQUIRE(entry->Info);
 }

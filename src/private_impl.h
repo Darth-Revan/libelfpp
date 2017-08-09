@@ -931,7 +931,7 @@ public:
 
     Result->Offset = (*C) (pEntry->r_offset);
     Result->Info = (*C) (pEntry->r_info);
-    Result->Symbol = getSymbolAndType<U>::getSym(Result->Info);
+    Result->SymbolIndex = getSymbolAndType<U>::getSym(Result->Info);
     Result->Type = getSymbolAndType<U>::getType(Result->Info);
     Result->Addend = 0;
     return Result;
@@ -951,7 +951,7 @@ public:
 
     Result->Offset = (*C) (pEntry->r_offset);
     Result->Info = (*C) (pEntry->r_info);
-    Result->Symbol = getSymbolAndType<U>::getSym(Result->Info);
+    Result->SymbolIndex = getSymbolAndType<U>::getSym(Result->Info);
     Result->Type = getSymbolAndType<U>::getType(Result->Info);
     Result->Addend = (*C) (pEntry->r_addend);
     return Result;
@@ -988,11 +988,7 @@ public:
       }
     }
 
-    auto Sym = Symbols->getSymbol(Result->Symbol);
-    if (Sym) {
-      Result->SymbolString = Sym->name;
-      Result->SymbolValue = Sym->value;
-    }
+    Result->SymbolInstance = Symbols->getSymbol(Result->SymbolIndex);
     return Result;
   }
 
