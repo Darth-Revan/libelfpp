@@ -59,8 +59,13 @@ target_include_directories(elfpp PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE
 install(DIRECTORY include/libelfpp DESTINATION include)
 install(TARGETS elfpp DESTINATION lib)
 
-add_executable(test_elfpp test/catch.h test/main.cpp)
-target_link_libraries(test_elfpp elfpp)
+option(NO_TESTS "Do not create unit test file with catch." OFF)
+if (NOT NO_TESTS)
+    configure_file(test/test_programs/fibonacci fibonacci COPYONLY)
+    configure_file(test/test_programs/hello_world hello_world COPYONLY)
+    add_executable(test_elfpp test/catch.h test/main.cpp)
+    target_link_libraries(test_elfpp elfpp)
+endif()
 
 # build example programs if desired
 option(BUILD_EXAMPLES "Builds example binaries in directory 'examples'." OFF)
