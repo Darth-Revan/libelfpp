@@ -173,7 +173,25 @@ Elf64_Half ELFFile::loadSectionsFromFile(std::ifstream& stream) {
 
     for (const auto& Sec : Sections) {
       Sec->setName(StrSection->getString(Sec->getNameStringOffset()));
+      // get symbol sections in this loop, so we do not need to loop again
+      if (Sec->getType() == SHT_DYNSYM || Sec->getType() == SHT_SYMTAB) {
+        /*SymbolSections.push_back(
+            std::make_shared<SymbolSection>(Sec, Converter,
+                                            Sections[Sec->getLink()], FileClass));
+                                            */
+        std::shared_ptr<SymbolSection> Sym;
+        std::shared_ptr<StringSection> Str;
+        if (FileHeader->is64Bit()) {
+          Str = StringSectionImpl<Elf64_Shdr>::fromSection(Sections[Sec->getLink()]);
+          Sym = SymbolSectionImpl<Elf64_Shdr, Elf64_Sym>::fromSection(Sec, Str);
+        } else {
+
+        }
+        if (Sym)
+          SymbolSections.push_back(Sym);
+      }
     }
+
     DynamicSec->setName(StrSection->getString(DynamicSec->getNameStringOffset()));
     StrSection->setName(StrSection->getString(StrSection->getNameStringOffset()));
   }

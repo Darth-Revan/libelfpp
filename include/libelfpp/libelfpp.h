@@ -84,6 +84,9 @@ private:
   /// Holds a pointer to the file's dynamic section
   std::shared_ptr<DynamicSection> DynamicSec;
 
+  /// Holds pointers to all symbol sections
+  std::vector<std::shared_ptr<SymbolSection>> SymbolSections;
+
   /// Loads all segmetns from the file stream \p stream and stores them in the
   /// vector \p Segements.
   ///
@@ -173,6 +176,14 @@ public:
   /// @return Reference to a std::vector containing std::shared_ptr<Section>
   const std::vector<std::shared_ptr<Section>>& sections() const {
     return Sections;
+  }
+
+  /// Returns a constant reference to the vector of symbol sections in this
+  /// ELF file.
+  ///
+  /// \return Reference to a std::vector containing std::shared_ptr<SymbolSection>
+  const std::vector<std::shared_ptr<SymbolSection>>& symbolSections() const {
+    return SymbolSections;
   }
 
   /// Returns a vector of strings, where each string is the name of a library

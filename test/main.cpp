@@ -126,3 +126,27 @@ TEST_CASE("Dynamic Section access", "[libelfpp]") {
   REQUIRE(dyn->getAllEntries().size() == dyn->getNumEntries());
   REQUIRE_FALSE(file.getNeededLibraries().empty());
 }
+
+TEST_CASE("Symbol access", "[libelfpp]") {
+  REQUIRE(file.symbolSections().size() > 0);
+
+  for (const auto SymSec : file.symbolSections()) {
+    REQUIRE(SymSec);
+    REQUIRE(SymSec->getNumSymbols() > 0);
+    auto Sym = SymSec->getSymbol(0);
+    REQUIRE(Sym->name.empty());
+    REQUIRE(Sym->value == 0);
+    REQUIRE(Sym->size == 0);
+    REQUIRE(Sym->other == 0);
+    REQUIRE(Sym->type == STT_NOTYPE);
+    REQUIRE(Sym->bind == STB_LOCAL);
+    REQUIRE(Sym->sectionIndex == SHN_UNDEF);
+  }
+
+  auto SymSec = file.symbolSections().at(0);
+  auto Sym = SymSec->getSymbol(100000000);
+  REQUIRE_FALSE(Sym);
+  Sym = SymSec->getSymbol(30);
+  REQUIRE(Sym);
+  REQUIRE_FALSE(Sym->name.empty());
+}

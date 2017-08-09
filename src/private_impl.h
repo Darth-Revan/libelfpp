@@ -736,6 +736,101 @@ public:
 }; // end of class DynamicSectionImpl
 
 
+/// Template implementation of \p SymbolSection
+template <class T, class U>
+class SymbolSectionImpl : public SectionImpl<T>, virtual public SymbolSection {
+
+private:
+  /// Holds a pointer to the associated string section
+  std::shared_ptr<StringSection> StrSec;
+
+public:
+  /// Constructor of \p SymbolSectionImpl.
+  ///
+  /// \param converter Pointer to an endianess converter
+  SymbolSectionImpl(const std::shared_ptr<EndianessConverter> converter,
+                    const std::shared_ptr<StringSection>& str) :
+      SectionImpl<T>(converter), StrSec(str) {}
+
+  /// Copy constructor of \p SymbolSectionImpl.
+  ///
+  /// \param other The instance to copy
+  SymbolSectionImpl(const SymbolSectionImpl& other) : SectionImpl<T>(other),
+                                                      StrSec(other.StrSec) {}
+
+  /// Constructor of \p SymbolSectionImpl. Constructs a new instance out of an
+  /// existing instance of \p SymbolSectionImpl and an intance of \p StringSection.
+  ///
+  /// \param other The base instance
+  SymbolSectionImpl(const SectionImpl<T>& other, const std::shared_ptr<StringSection>& str)
+      : SectionImpl<T>(other), StrSec(str) {}
+
+  /// Destructor of \p SymbolSectionImpl.
+  virtual ~SymbolSectionImpl() {
+    StrSec.reset();
+  }
+
+  // creates a new instance from a section pointer
+  static const std::shared_ptr<SymbolSection> fromSection(
+      const std::shared_ptr<Section>& base,
+      const std::shared_ptr<StringSection>& str) {
+
+    if (!base || !str)
+      return nullptr;
+
+    std::shared_ptr<SymbolSection> Result = std::make_shared<SymbolSectionImpl<T, U>>(
+        *dynamic_cast<SectionImpl<T>*>(base.get()), str);
+
+    if (!Result) {
+      return nullptr;
+    }
+    return Result;
+  }
+
+  // returns number of entries
+  const Elf64_Xword getNumSymbols() const {
+    if (getEntrySize() != 0) {
+      return getSize() / getEntrySize();
+    }
+    return 0;
+  }
+
+  // return all entries
+  const std::vector<std::shared_ptr<Symbol>> getAllSymbols() const {
+    std::shared_ptr<Symbol> Entry {nullptr};
+    std::vector<std::shared_ptr<Symbol>> Result {};
+
+    for (Elf64_Xword iter = 0; iter < getNumSymbols(); ++iter) {
+      Entry = getSymbol(iter);
+      if (Entry) {
+        Result.push_back(Entry);
+      }
+    }
+    return Result;
+  }
+
+  const std::shared_ptr<Symbol> getSymbol(const Elf64_Xword index) const {
+    if (index >= getNumSymbols()) {
+      return nullptr;
+    }
+    std::shared_ptr<Symbol> Result = std::make_shared<Symbol>();
+
+    auto C = this->Converter;
+    const U* pSym = reinterpret_cast<const U*>(getData() + index * getEntrySize());
+
+    Result->name = StrSec->getString((*C) (pSym->st_name));
+    Result->value = (*C) (pSym->st_value);
+    Result->size = (*C) (pSym->st_size);
+    Result->bind = ELF64_ST_BIND(pSym->st_info);  // is the same as ELF32_ST_BIND
+    Result->type = ELF64_ST_TYPE(pSym->st_info);  // is the same as ELF32_ST_TYPE
+    Result->sectionIndex = (*C) (pSym->st_shndx);
+    Result->other = pSym->st_other;
+
+    return Result;
+  }
+
+}; // end of class SymbolSectionImpl
+
 } // end of namespace libelfpp
 
 #endif //LIBELFPP_PRIVATE_IMPL_H

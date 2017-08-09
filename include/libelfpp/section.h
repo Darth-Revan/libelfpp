@@ -204,8 +204,92 @@ public:
   /// \return Vector of pointers to dynamic section entries
   virtual const std::vector<DynamicSectionEntry> getAllEntries() const = 0;
 
-
 }; // end of class DynamicSection
+
+
+/// Struct representing a symbol in the symbol section of an ELF file
+struct Symbol final {
+  /// The symbol's name as string
+  std::string name;
+  /// Value of the field \p st_value
+  Elf64_Addr value;
+  /// Size of the symbol
+  Elf64_Xword size;
+  /// Symbol binding
+  unsigned char bind;
+  /// The type of the symbol
+  unsigned char type;
+  /// Section index of the symbol (\p st_shndx)
+  Elf64_Half sectionIndex;
+  /// Value of the field \p st_other
+  unsigned char other;
+
+  /// Returns the symbol binding as string.
+  ///
+  /// \return Symbol binding as string
+  const std::string getBindString() const {
+    switch (bind) {
+    case STB_GLOBAL:
+      return "GLOBAL";
+    case STB_LOCAL:
+      return "LOCAL";
+    case STB_WEAK:
+      return "WEAK";
+    default:
+      return "UNKOWN";
+    }
+  }
+
+  /// Returns the symbol type as string.
+  ///
+  /// \return The symbol type as string
+  std::string getTypeString() const {
+    switch (type) {
+    case STT_NOTYPE:
+      return "NOTYPE";
+    case STT_OBJECT:
+      return "OBJECT";
+    case STT_FUNC:
+      return "FUNC";
+    case STT_SECTION:
+      return "SECTION";
+    case STT_FILE:
+      return "FILE";
+    case STT_COMMON:
+      return "COMMON";
+    case STT_TLS:
+      return "TLS";
+    default:
+      return "UNKOWN";
+    }
+  }
+};
+
+/// Class representing a symbol section
+class SymbolSection : virtual public Section {
+
+public:
+  /// Destructor of \p SymbolSection
+  virtual ~SymbolSection() {}
+
+  /// Returns the number of symbols in this section.
+  ///
+  /// \return Number of symbols in this section
+  virtual const Elf64_Xword getNumSymbols() const = 0;
+
+  /// Returns the symbol at index \p index as a pointer to an instance of
+  /// \p Symbol or \p nullptr if the operation fails.
+  ///
+  /// \param index The index of the symbol to retrieve
+  /// \return Pointer to the symbol or \p nullptr
+  virtual const std::shared_ptr<Symbol> getSymbol(const Elf64_Xword index) const = 0;
+
+  /// Returns a vector containing pointers to all symbols in this symbol section.
+  ///
+  /// \return Vector containing pointers to all symbols in this section
+  virtual const std::vector<std::shared_ptr<Symbol>> getAllSymbols() const = 0;
+
+}; // end of class SymbolSection
 
 } // end of namespace elfpp
 
