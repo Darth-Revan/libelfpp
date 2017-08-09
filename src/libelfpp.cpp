@@ -87,8 +87,8 @@ ELFFile::ELFFile(const std::string& filename) : Filename(filename) {
     FileHeader = std::make_shared<ELFHeaderImpl<Elf32_Ehdr>>(Converter, IsLittleEndian, Input);
   }
 
-  loadSegmentsFromFile(Input);
   loadSectionsFromFile(Input);
+  loadSegmentsFromFile(Input);
   Input.close();
 }
 

@@ -215,6 +215,7 @@ TEST_CASE("Read example file hello_world", "[test/hello_world]") {
   REQUIRE(interp->getMemorySize() == 19);
   REQUIRE(interp->getFlagsString() == "R");
   REQUIRE(interp->getAddressAlignment() == 1);
+  REQUIRE(interp->getAssociatedSections().size() == 1);
 
   auto dyn = file.getDynamicSection();
   REQUIRE(dyn);
@@ -313,6 +314,8 @@ TEST_CASE("Read example file fibonacci", "[test/fibonacci]") {
   REQUIRE(load->getMemorySize() == 2644);
   REQUIRE(load->getFlags() == 5);
   REQUIRE(load->getAddressAlignment() == 2097152);
+  REQUIRE(load->getAssociatedSections().size() == 18);
+
 
   auto dyn = file.getDynamicSection();
   REQUIRE(dyn);
