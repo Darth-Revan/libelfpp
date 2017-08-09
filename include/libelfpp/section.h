@@ -424,6 +424,44 @@ public:
 
 }; // end of class RelocationSection
 
+
+/// Struct representing a single entry in a note section
+struct Note final {
+  /// Holds the name of the note entry
+  std::string Name;
+  /// Holds the description of the note entry
+  std::string Description;
+  /// Holds the type of the note entry
+  Elf64_Word Type;
+};
+
+
+/// Class for accessing note sections
+class NoteSection : virtual public Section {
+
+public:
+  /// Destructor of \p NoteSection
+  virtual ~NoteSection() {}
+
+  /// Returns the number of entries in the relocation section.
+  ///
+  /// \return Number of entries in the relocation section
+  virtual const Elf64_Xword getNumEntries() const = 0;
+
+  /// Returns the entry at index \p index from the note section or
+  /// \p nullptr if the operation failed or the index would be out-of-bounds.
+  ///
+  /// \param index The index of the entry
+  /// \return Pointer to a entry in the note section of \p nullptr
+  virtual const std::shared_ptr<Note> getEntry(const Elf64_Xword index) const = 0;
+
+  /// Returns a vector containing all entries in this note section.
+  ///
+  /// \return Vector of pointers to note section entries
+  virtual const std::vector<std::shared_ptr<Note>> getAllEntries() const = 0;
+
+};
+
 } // end of namespace elfpp
 
 

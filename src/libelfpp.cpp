@@ -207,6 +207,17 @@ Elf64_Half ELFFile::loadSectionsFromFile(std::ifstream& stream) {
         if (Reloc)
           RelocSections.push_back(Reloc);
       }
+
+      if (Sec->getType() == SHT_NOTE) {
+        std::shared_ptr<NoteSection> N;
+        if (FileHeader->is64Bit()) {
+          N = NoteSectionImpl<Elf64_Shdr>::fromSection(Sec);
+        } else {
+          N = NoteSectionImpl<Elf32_Shdr>::fromSection(Sec);
+        }
+        if (N)
+          NoteSections.push_back(N);
+      }
     }
 
     DynamicSec->setName(StrSection->getString(DynamicSec->getNameStringOffset()));

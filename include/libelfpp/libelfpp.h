@@ -90,6 +90,9 @@ private:
   /// Holds pointers to all relocation sections of this file
   std::vector<std::shared_ptr<RelocationSection>> RelocSections;
 
+  /// Holds pointers to all note sections of this file
+  std::vector<std::shared_ptr<NoteSection>> NoteSections;
+
   /// Loads all segmetns from the file stream \p stream and stores them in the
   /// vector \p Segements.
   ///
@@ -124,7 +127,8 @@ public:
                                   StrSection(other.StrSection),
                                   DynamicSec(other.DynamicSec),
                                   SymbolSections(other.SymbolSections),
-                                  RelocSections(other.RelocSections) {}
+                                  RelocSections(other.RelocSections),
+                                  NoteSections(other.NoteSections) {}
 
   /// Destructor of \p ELFFile.
   ~ELFFile() {
@@ -136,6 +140,7 @@ public:
     DynamicSec.reset();
     SymbolSections.clear();
     RelocSections.clear();
+    NoteSections.clear();
   }
 
   /// Returns the name of the underlying file a string.
@@ -196,9 +201,17 @@ public:
   /// Returns a constant reference to the vector of relocation sections in this
   /// ELF file.
   ///
-  /// \return Reference to a std::vector containing std::shared_ptr<SymbolSection>
+  /// \return Reference to a std::vector containing relocation sections
   const std::vector<std::shared_ptr<RelocationSection>>& relocationSections() const {
     return RelocSections;
+  }
+
+  /// Returns a constant reference to the vector of note sections in this
+  /// ELF file.
+  ///
+  /// \return Reference to a std::vector containing std::shared_ptr<NoteSection>
+  const std::vector<std::shared_ptr<NoteSection>>& noteSections() const {
+    return NoteSections;
   }
 
   /// Returns a vector of strings, where each string is the name of a library

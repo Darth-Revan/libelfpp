@@ -994,6 +994,124 @@ public:
 
 }; // end of class RelocationSectionImpl
 
+
+/// Template implementation of \p NoteSectionImpl
+template <class T>
+class NoteSectionImpl : public SectionImpl<T>, virtual public NoteSection {
+
+private:
+  /// Holds all note section entries (filled at creation of section)
+  std::vector<std::shared_ptr<Note>> Notes;
+
+
+  /// Loads all notes from the section. Should be called at creation of object.
+  void loadNotes() {
+    Notes.clear();
+
+    const char* Data = getData();
+    Elf64_Xword Size = getSize();
+    Elf64_Xword Current = 0;
+
+    // Early-return if no data present
+    if (!Data ||!Size) {
+      return;
+    }
+
+    size_t align = sizeof(Elf64_Word);
+    Elf64_Word namesz, descsz;
+    std::shared_ptr<Note> entry;
+    auto C = this->Converter;
+
+    while ((Current + 3 * align) <= Size) {
+      namesz = (*C) (*reinterpret_cast<const Elf64_Word*>(Data + Current));
+      descsz = (*C) (*reinterpret_cast<const Elf64_Word*>(Data + Current + sizeof(namesz)));
+
+      std::string Name = "";
+      const char* Desc = 0;
+
+      if (namesz)
+        Name.assign(Data + 3 * align, namesz - 1);
+
+      if (descsz)
+        Desc = (Data + 3 * align + ((namesz + align - 1) / align) * align);
+
+      entry = std::make_shared<Note>();
+      entry->Name = Name;
+      entry->Description = std::string(Desc, descsz);
+      entry->Type = (*C) (*reinterpret_cast<const Elf64_Word*>(Data + 2 * align));
+      Notes.push_back(entry);
+
+      Current += 3 * align +
+          ((namesz + align - 1) / align) * align +
+          ((descsz + align - 1) / align) * align;
+    }
+  }
+
+public:
+  /// Constructor of \p NoteSectionImpl.
+  ///
+  /// \param converter Pointer to an endianess converter
+  NoteSectionImpl(const std::shared_ptr<EndianessConverter> converter) :
+      SectionImpl<T>(converter), Notes() {
+
+    loadNotes();
+  }
+
+  /// Copy constructor of \p NoteSectionImpl.
+  ///
+  /// \param other The instance to copy
+  NoteSectionImpl(const NoteSectionImpl& other) : SectionImpl<T>(other),
+                                                  Notes(other.Notes) {}
+
+  /// Constructor of \p NoteSectionImpl. Constructs a new instance out of
+  /// an existing instance of \p NoteSectionImpl.
+  ///
+  /// \param other The base instance
+  NoteSectionImpl(const SectionImpl<T>& other) : SectionImpl<T>(other),
+                                                 Notes() {
+
+    loadNotes();
+  }
+
+  /// Destructor of \p NoteSectionImpl.
+  virtual ~NoteSectionImpl() {
+    Notes.clear();
+  }
+
+  // creates a new instance from a section pointer
+  static const std::shared_ptr<NoteSection> fromSection(const std::shared_ptr<Section>& base) {
+    if (!base)
+      return nullptr;
+
+    std::shared_ptr<NoteSection> Result = std::make_shared<NoteSectionImpl<T>>(
+        *dynamic_cast<SectionImpl<T>*>(base.get()));
+
+    if (!Result) {
+      return nullptr;
+    }
+    return Result;
+  }
+
+  // returns number of entries
+  const Elf64_Xword getNumEntries() const {
+    return Notes.size();
+  }
+
+  // return entry
+  const std::shared_ptr<Note> getEntry(const Elf64_Xword index) const {
+    if (index >= Notes.size()) {
+      return nullptr;
+    }
+    return Notes[index];
+  }
+
+  // return all entries
+  const std::vector<std::shared_ptr<Note>> getAllEntries() const {
+    return Notes;
+  }
+
+}; // end of class NoteSectionImpl
+
 } // end of namespace libelfpp
 
 #endif //LIBELFPP_PRIVATE_IMPL_H

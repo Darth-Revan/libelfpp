@@ -163,3 +163,14 @@ TEST_CASE("Relocation access", "[libelfpp]") {
   REQUIRE(entry->Offset);
   REQUIRE(entry->Info);
 }
+
+TEST_CASE("Note section access", "[libelfpp]") {
+  auto notes = file.noteSections();
+  REQUIRE(notes.size() > 0);
+  auto note = notes[0];
+  REQUIRE_FALSE(note->getEntry(note->getNumEntries()));
+  if (note->getNumEntries() > 0) {
+    REQUIRE(note->getEntry(0));
+    REQUIRE(note->getEntry(0)->Type >= 0);  // negative types not allowed
+  }
+}
