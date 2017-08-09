@@ -44,6 +44,8 @@ namespace libelfpp {
 /// Class representing an ELF file section
 class Section {
 
+  /// Base class for ELF files. Must be friend class, so that is able to create
+  /// new Sections.
   friend class ELFFile;
 
 public:

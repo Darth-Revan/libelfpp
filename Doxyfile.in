@@ -759,7 +759,7 @@ WARN_FORMAT            = "$file:$line: $text"
 # messages should be written. If left blank the output is written to standard
 # error (stderr).
 
-WARN_LOGFILE           = @PROJECT_SOURCE_DIR@/Doxygen.log
+WARN_LOGFILE           = @CMAKE_CURRENT_BINARY_DIR@/Doxygen.log
 
 #---------------------------------------------------------------------------
 # Configuration options related to the input files

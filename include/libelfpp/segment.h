@@ -44,6 +44,8 @@ namespace libelfpp {
 /// Class representing an ELF file segment
 class Segment {
 
+  /// Base class for ELF files. Must be friend class, so that is able to create
+  /// new Segments.
   friend class ELFFile;
 
 public:
