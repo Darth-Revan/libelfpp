@@ -268,22 +268,22 @@ private:
   std::string Data;
   /// Pointer to an instance of \p EndianessConverter
   const std::shared_ptr<EndianessConverter> Converter;
-  /// Holds the indices of associated sections
-  std::vector<Elf64_Half> SectionIndices;
+  /// Holds pointers to associated sections
+  std::vector<std::shared_ptr<Section>> Sections;
 
 public:
   /// Constructor of \p SegmentImpl.
   ///
   /// \param converter Pointer to an instance of \p EndianessConverter
   SegmentImpl(const std::shared_ptr<EndianessConverter> converter) :
-      Converter(converter), SectionIndices(), Data("") {
+      Converter(converter), Sections(), Data("") {
     std::fill_n(reinterpret_cast<char*>(&Header), sizeof(Header), '\0');
   }
 
   /// Destructor of \p SectionImpl.
   ~SegmentImpl() {
     Data.clear();
-    SectionIndices.clear();
+    Sections.clear();
   }
 
   // Returns index of segment
@@ -362,12 +362,12 @@ public:
 
   // Return section number of segment
   Elf64_Half getSectionNumber() const {
-    return static_cast<Elf64_Half>(SectionIndices.size());
+    return static_cast<Elf64_Half>(Sections.size());
   }
 
   // Return vector containing indices of associated sections
-  const std::vector<Elf64_Half>& getAssociatedSections() const {
-    return SectionIndices;
+  const std::vector<std::shared_ptr<Section>>& getAssociatedSections() const {
+    return Sections;
   }
 
 protected:
@@ -396,15 +396,14 @@ protected:
     Index = index;
   }
 
-  // add index to indices of associated sections
-  Elf64_Half addSectionIndex(const Elf64_Half index) {
+  // add associated section
+  Elf64_Half addSection(const std::shared_ptr<Section>& section) {
     // The vector will be so small, that the overhead of an unordered_set would
     // be higher than searching the vector for every insert
-    if (std::find(SectionIndices.begin(), SectionIndices.end(), index) ==
-        SectionIndices.end()) {
-      SectionIndices.push_back(index);
+    if (std::find(Sections.begin(), Sections.end(), section) == Sections.end()) {
+      Sections.push_back(section);
     }
-    return static_cast<Elf64_Half >(SectionIndices.size());
+    return static_cast<Elf64_Half>(Sections.size());
   }
 
 }; // end of class SegmentImpl

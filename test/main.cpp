@@ -216,6 +216,7 @@ TEST_CASE("Read example file hello_world", "[test/hello_world]") {
   REQUIRE(interp->getFlagsString() == "R");
   REQUIRE(interp->getAddressAlignment() == 1);
   REQUIRE(interp->getAssociatedSections().size() == 1);
+  REQUIRE(interp->getAssociatedSections()[0]->getName() == ".interp");
 
   auto dyn = file.getDynamicSection();
   REQUIRE(dyn);
@@ -315,7 +316,8 @@ TEST_CASE("Read example file fibonacci", "[test/fibonacci]") {
   REQUIRE(load->getFlags() == 5);
   REQUIRE(load->getAddressAlignment() == 2097152);
   REQUIRE(load->getAssociatedSections().size() == 18);
-
+  REQUIRE(load->getAssociatedSections()[1]->getName() == ".interp");
+  REQUIRE(load->getAssociatedSections()[2]->getName() == ".note.ABI-tag");
 
   auto dyn = file.getDynamicSection();
   REQUIRE(dyn);

@@ -36,7 +36,6 @@
 #include "libelfpp/libelfpp.h"
 #include "private_impl.h"
 #include <cstring>
-#include <iostream>
 
 namespace libelfpp {
 
@@ -121,12 +120,12 @@ Elf64_Half ELFFile::loadSegmentsFromFile(std::ifstream& stream) {
       if (Section->getFlags() & SHF_ALLOC) {
         if (vBaseAddr <= Section->getAddress() &&
             Section->getAddress() + Section->getSize() <= vEndAddr) {
-          Seg->addSectionIndex(Section->getIndex());
+          Seg->addSection(Sections[Section->getIndex()]);
         }
       } else {
         if (baseOff <= Section->getOffset() &&
             Section->getOffset() + Section->getSize() <= endOff) {
-          Seg->addSectionIndex(Section->getIndex());
+          Seg->addSection(Sections[Section->getIndex()]);
         }
       }
     }

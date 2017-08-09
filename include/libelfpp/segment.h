@@ -35,8 +35,7 @@
 #ifndef LIBELFPP_SEGMENT_H
 #define LIBELFPP_SEGMENT_H
 
-#include <elf.h>
-#include <string>
+#include "section.h"
 #include <vector>
 
 namespace libelfpp {
@@ -122,11 +121,11 @@ public:
   /// \return Number of sections associated with this section
   virtual Elf64_Half getSectionNumber() const = 0;
 
-  /// Returns a vector of indices, where each index represents the index of
-  /// a section associated with this particular segment.
+  /// Returns a vector of pointers each representing a section associated with
+  /// this particular segment.
   ///
   /// \return A vector of associated sections
-  virtual const std::vector<Elf64_Half>& getAssociatedSections() const = 0;
+  virtual const std::vector<std::shared_ptr<Section>>& getAssociatedSections() const = 0;
 
 protected:
   /// Loads a segment from a input stream at a specific stream offset.
@@ -140,12 +139,12 @@ protected:
   /// \param index The index for the segment
   virtual void setIndex(const Elf64_Half index) = 0;
 
-  /// Adds the section with index \p index to the list of associated sections.
+  /// Adds the section \p section to the list of associated sections.
   ///
-  /// \param index Index of the section to add
+  /// \param section Pointer to the section to add
   /// \return The number of sections associated with the segment after adding
   ///         the new one.
-  virtual Elf64_Half addSectionIndex(const Elf64_Half index) = 0;
+  virtual Elf64_Half addSection(const std::shared_ptr<Section>& section) = 0;
 
 }; // end of class Segment
 

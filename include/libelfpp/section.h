@@ -36,6 +36,7 @@
 #define LIBELFPP_SECTION_H
 
 #include "endianutil.h"
+#include <vector>
 #include <string>
 #include <elf.h>
 
