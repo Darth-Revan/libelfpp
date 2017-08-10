@@ -134,8 +134,8 @@ void printSegmentTable(const std::shared_ptr<ELFFile>& pFile,
   std::string sectionNames = std::string();
 
   for (const auto& Seg : pFile->segments()) {
-    for (const auto& index : Seg->getAssociatedSections()) {
-      sectionNames += pFile->sections().at(index)->getName() + " ";
+    for (const auto& Sec : Seg->getAssociatedSections()) {
+      sectionNames += Sec->getName() + " ";
     }
     tfm::format(stream, " %02d  %s\n", Seg->getIndex(), sectionNames);
     sectionNames.clear();
