@@ -124,7 +124,14 @@ std::cout << entry->Offset << " " << entry->Addend << "\n";
 
 There are two simple example programs in the subfolder `examples` to show usage
 of the library. One is a simple command line utility that prints header
-information of an ELF file, the other one is a simple `readelf`-like tool using `libelfpp`.
+information of an ELF file, the other one is a simple `readelf`-like tool using
+`libelfpp`. To build the example programs, pass the option `-DBUILD_EXAMPLES=ON`
+to CMake before building and run:
+
+```bash
+make example
+make readelfpp
+```
 
 ## Testing
 
